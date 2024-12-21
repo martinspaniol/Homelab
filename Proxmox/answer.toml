@@ -1,0 +1,22 @@
+[global]
+keyboard = "de"
+country = "de"
+fqdn = "ms01.fritz.box"
+mailto = "martin.spaniol@gmail.com"
+timezone = "Europe/Berlin"
+root_password_hashed = "$y$j9T$V8Uo6beCJiH0MMxz3zDGO0$20torf6SCrxGrlUfJUB5wMZ0VqpjvNuWsGO4y7QzuG/"
+root_ssh_keys = [
+    "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAn7+popjPLYmUHh9reih3Qb5Y3ees/zIXiA4y81XSk683zo2AKyUfr15OC42wJvBIxaHi3DPTeI3q/QkdK+M+2/FnB9kxwHrVUWrcB3ZxJt3kvjfDHcw3qfy4IvDmcAEkd37cE8q4Z1Giszzd1ZwGDopCFadoz/xThybobHK0nli+rZsZR1HGym38dV/PMpqcm0w8fb+gf7itwC+7LAiZCx5XTLniGw+zihoV6VR097ABEYpryY4p/FRijDfin9WwEsOh17iSRFrDiVmu64RTBD8TSMpr9aEd1Tje2P9PALypmPHrg4lEDoDwhNVtwMmS42E1/ozH6cktP36eMgaeKQ== rsa-key-martin"
+]
+
+[network]
+source = "from-answer"
+cidr = "192.168.0.12/24"
+dns = "192.168.0.10"
+gateway = "192.168.0.1"
+filter.ID_NET_NAME = "enp90s0"
+
+[disk-setup]
+filesystem = "zfs"
+zfs.raid = "raid1"
+disk_list = ["nvme0n1", "nvme1n1"]
