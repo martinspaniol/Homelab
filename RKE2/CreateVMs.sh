@@ -26,5 +26,6 @@ sleep 15m
 for i in $(seq 0 $((${#names[@]} - 1))); do
     qm reboot $(($i + 100))
 done
+exit
 EOF
 echo -e " \033[32;5mVMs created\033[0m"
