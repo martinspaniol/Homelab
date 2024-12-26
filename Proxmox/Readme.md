@@ -1,42 +1,7 @@
+# Introduction
+
+
 # Requirements
-## Enable USB Passthrough for WSL
-> This section is under construction. In the meantime use rufus to copy all necessary files to the USB drive.
-
-1. Install the [USB/IP open-source project](https://github.com/dorssel/usbipd-win) as described by Microsoft [here](https://learn.microsoft.com/en-us/windows/wsl/connect-usb). Open powershell as administrator and run the installation:  
-`winget install --interactive --exact dorssel.usbipd-win`
-
-2. Restart your powershell as administrator to reload your `Path`. Then list all USB devices:  
-`usbipd list`  
-  
-This should look like this:  
-``` 
-PS C:\Users\marti> usbipd list
-Connected:
-BUSID  VID:PID    DEVICE                                    STATE
-1-1    03f0:3407  USB Mass Storage Device                   Not shared
-4-3    5986:215f  Integrated Camera, APP Mode               Not shared
-4-4    0bda:4853  Realtek Bluetooth Adapter                 Not shared
-``` 
-> Note the device with BUSID 1-1.
-
-3. To share the device use take note of the appropriate `BUSID` and issue the following command:  
-`usbipd bind --busid 1-1`
-
-4. Now attach the device to WSL:  
-`usbipd attach --wsl --busid 1-1`
-
-5. Switch to WSL and check if the device is available:  
-```
-martin@Lenovo-Laptop:/$ lsusb
-Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
-Bus 001 Device 002: ID 03f0:3407 HP, Inc v135w
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-```
-> Note the HP, INC v135w device.
-
-6. (Optional): To detach the device from WSL again, run the following command in powershell:  
-`usbipd detach --busid 1-1`
-
 ## Install Proxmox Assistant Tool
 1. Switch to root:  
 `sudo su`
@@ -64,10 +29,6 @@ proxmox-auto-install-assistant 0.1.0`
 
 7. Switch back to normal user:  
 `exit`
-
-## Install xorriso (seems not necessary)
-`xorriso` is needed on debian based systems. Install xorriso:  
-`apt install --assume-yes xorriso`
 
 ## Install mkpasswd
 `mkpasswd` is used to generate pre-hashed passwords. This is used to store a hashed password in the answer file instead of storing the password in cleartext.
