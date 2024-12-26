@@ -1,0 +1,15 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: martinspaniol # change to your domain
+  namespace: traefik # add to traefik namespace so it can use it (you DO NOT need it in each app namespace!!!)
+spec:
+  secretName: martinspaniol-tls # change to your secretname
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  commonName: "*.martinspaniol.de" # change to your domain
+  dnsNames:
+  - "*.martinspaniol.de" # change to your domain
+  - martinspaniol.de # change to your domain
