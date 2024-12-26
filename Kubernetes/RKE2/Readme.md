@@ -50,21 +50,27 @@ templateID=5000
 # User of remote machines
 user=ubuntu
 
+# Change this to the name of the Proxmox Storage
+storage=local-zfs
+
+# Change this to the VM ID the first longhorn VM will get
+startingVMID=100
+
 ############################################
-# Create RKE2 VMs                          #
+# DON'T EDIT BEYOND THIS LINE              #
 ############################################
 ssh -tt $proxmoxhv -i ~/.ssh/$certName <<'EOF'
 for i in $(seq 0 $((${#rke2names[@]} - 1))); do
-    echo -e " \033[32;5mID = $(($i + 100))\033[0m"
+    echo -e " \033[32;5mID = $(($i + $startingVMID))\033[0m"
     echo -e " \033[32;5mName = ${rke2names[$i]}\033[0m"
     echo -e " \033[32;5mMac = ${rke2macs[$i]}\033[0m"
     echo -e " \033[32;5mResize = ${rke2resize[$i]}\033[0m"
 
-    qm clone $templateID $(($i + 100)) --format raw --full true --name ${rke2names[$i]} --storage local-zfs
-    qm set $(($i + 100)) --net0 virtio=${rke2macs[$i]},bridge=vmbr0
+    qm clone $templateID $(($i + $startingVMID)) --format raw --full true --name ${rke2names[$i]} --storage $storage
+    qm set $(($i + $startingVMID)) --net0 virtio=${rke2macs[$i]},bridge=vmbr0
     
     if [ "${rke2resize[$i]}" != "no" ]; then
-        qm disk resize $(($i + 100)) scsi0 ${rke2resize[$i]}
+        qm disk resize $(($i + $startingVMID)) scsi0 ${rke2resize[$i]}
     fi
 done
 EOF
