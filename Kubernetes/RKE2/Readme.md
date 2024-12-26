@@ -2,7 +2,7 @@
 This shell script first creates the necessary VMs for Rancher Kubernetes Version 2 (RKE2) and then installs an RKE2 Cluster on these nodes in Proxmox.
 
 # Requirements
-- Proxmos is set up and running
+- Proxmox is set up and running
 - You have a working cloud-init template (see [Cloud-Init](../Cloud-Init/Readme.md))
 
 # Instructions
