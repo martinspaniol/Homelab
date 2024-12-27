@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rclone-config
+type: Opaque
+data:
+  application-config: |
+    W2Rpc2tzdGF0aW9uLW1lZGlhXQp0eXBlID0gc21iCmhvc3QgPSBkaXNrc3RhdGlvbi5mcml0ei5ib3gKdXNlciA9IHBsZXgKcGFzcyA9IGhvYmN6OWhtalVvYjAyejJZVlBFWDZpR2c4R3N3YS1rZWpzZE0wcE8tN0RWVTNRS1pXRmVLaHRqTEtfQU53bW4KCg==
