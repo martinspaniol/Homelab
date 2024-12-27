@@ -179,7 +179,7 @@ service:
 
 
 nodeSelector:
-  worker: "true"
+  worker: true
 
 tolerations: []
 
