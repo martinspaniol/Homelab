@@ -178,9 +178,8 @@ service:
   annotations: {}
 
 
-nodeSelector: {
+nodeSelector: 
   worker: "true"
-}
 
 tolerations: []
 
