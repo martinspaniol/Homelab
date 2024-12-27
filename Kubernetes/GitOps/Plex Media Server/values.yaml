@@ -30,7 +30,7 @@ pms:
   storageClassName: longhorn
 
   # the volume size to provision for the PMS database
-  configStorage: 2Gi
+  configStorage: 3Gi
 
   # Name of an existing `PersistentVolumeClaim` for the PMS database
   # NOTE: When set, 'configStorage' and 'storageClassName' are ignored.
