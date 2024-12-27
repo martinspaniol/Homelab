@@ -1,0 +1,7 @@
+appName: "gotify"
+namespace: "gotify"
+imageRegistry: "gotify/server"
+imageVersion: "latest"
+
+pvcSize: "1Gi"
+storageClassName: "longhorn"

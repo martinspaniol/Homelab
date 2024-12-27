@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.appName }}
+    app.kubernetes.io/instance: {{ .Values.appName }}
+    app.kubernetes.io/name: {{ .Values.appName }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+        app.kubernetes.io/instance: {{ .Values.appName }}
+        app.kubernetes.io/name: {{ .Values.appName }}
+    spec:
+      nodeSelector:
+        worker: "true"
+      containers:
+      - name: {{ .Values.appName }}
+        image: {{ .Values.imageRegistry }}:{{ .Values.imageVersion }}
+        env:
+        - name: GOTIFY_DB_SQLITE
+          value: /app/data/gotify.db
+        - name: GOTIFY_PORT
+          value: "80"
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: {{ .Values.appName }}
+          mountPath: /app/data
+      volumes:
+      - name: {{ .Values.appName }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.appName }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.appName }}
+    app.kubernetes.io/instance: {{ .Values.appName }}
+    app.kubernetes.io/name: {{ .Values.appName }}
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: {{ .Values.appName }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.appName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.appName }}
+    app.kubernetes.io/instance: {{ .Values.appName }}
+    app.kubernetes.io/name: {{ .Values.appName }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.pvcSize }}
+  storageClassName: {{ .Values.storageClassName }}
