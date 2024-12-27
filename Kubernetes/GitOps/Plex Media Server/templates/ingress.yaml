@@ -12,12 +12,12 @@ spec:
     - match: Host(`www.plex.unserneuesheim.de`) # change to your domain
       kind: Rule
       services:
-        - name: plex-plex-media-server
+        - name: {{ include "pms-chart.fullname" . }}
           port: 32400
     - match: Host(`plex.unserneuesheim.de`) # change to your domain
       kind: Rule
       services:
-        - name: plex-plex-media-server
+        - name: {{ include "pms-chart.fullname" . }}
           port: 32400
       middlewares:
         - name: default-headers
