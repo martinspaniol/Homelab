@@ -1,28 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gotify
+  name: {{ .Values.appName }}
   labels:
-    app: gotify
-    app.kubernetes.io/instance: gotify
-    app.kubernetes.io/name: gotify
+    app: {{ .Values.appName }}
+    app.kubernetes.io/instance: {{ .Values.appName }}
+    app.kubernetes.io/name: {{ .Values.appName }}
 spec:
   selector:
     matchLabels:
-      app: gotify
+      app: {{ .Values.appName }}
   replicas: {{ .Values.replicas }}
   template:
     metadata:
       labels:
-        app: gotify
-        app.kubernetes.io/instance: gotify
-        app.kubernetes.io/name: gotify
+        app: {{ .Values.appName }}
+        app.kubernetes.io/instance: {{ .Values.appName }}
+        app.kubernetes.io/name: {{ .Values.appName }}
     spec:
       nodeSelector:
         worker: "true"
       containers:
-      - name: gotify
-        image: gotify/server:latest
+      - name: {{ .Values.appName }}
+        image: {{ .Values.image }}
         env:
         - name: GOTIFY_DB_SQLITE
           value: /app/data/gotify.db
@@ -31,9 +31,9 @@ spec:
         ports:
         - containerPort: 80
         volumeMounts:
-        - name: gotify
+        - name: {{ .Values.appName }}
           mountPath: /app/data
       volumes:
-      - name: gotify
+      - name: {{ .Values.appName }}
         persistentVolumeClaim:
-          claimName: gotify
+          claimName: {{ .Values.appName }}

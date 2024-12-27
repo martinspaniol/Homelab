@@ -1,1 +1,7 @@
 replicas: 1
+appName: "gotify"
+image: "gotify/server:latest"
+domain: "unserneuesheim"
+
+storage: "1Gi"
+storageClass: "longhorn"

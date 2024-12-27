@@ -2,24 +2,24 @@
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: gotify
+  name: {{ .Values.appName }}
   annotations: 
     kubernetes.io/ingress.class: traefik-external
 spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`www.gotify.unserneuesheim.de`) # change to your domain
+    - match: Host(`www.{{ .Values.appName }}.{{ .Values.domain }}.de`) # change to your domain
       kind: Rule
       services:
-        - name: gotify
+        - name: {{ .Values.appName }}
           port: 80
-    - match: Host(`gotify.unserneuesheim.de`) # change to your domain
+    - match: Host(`{{ .Values.appName }}.{{ .Values.domain }}.de`) # change to your domain
       kind: Rule
       services:
-        - name: gotify
+        - name: {{ .Values.appName }}
           port: 80
       middlewares:
         - name: default-headers
   tls:
-    secretName: unserneuesheim-tls # change to your cert
+    secretName: {{ .Values.domain }}-tls # change to your cert
