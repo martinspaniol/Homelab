@@ -76,9 +76,9 @@ If you have an existing plex installation and you want to migrate the configurat
 
 3. Create a backup of your plex database. In my case my existing plex server is running in docker on my Synology NAS and the configuration directory _/config_ is mounted via a docker-compose file from _/volume1/docker/medialib/plex_.  
 So ssh into your NAS, become root, switch to the above directory and create a tarball using  
-`tar -cvf /volume1/media/pms.tar .`
+`tar -cvf <SOME DIRECTORY>/pms.tar .`
 
-4. The plex backup needs to be available in the new kubernetes plex instance. We can use the initContainer script to achieve that. Adjust the following lines in the `values.yaml` file:  
+4. The plex backup needs to be available in the new kubernetes plex instance. We can use the initContainer script to achieve that. Upload your _pms.tar_ file to a http-available location (like Onedrive). Then adjust the following lines in the `values.yaml` file:  
 ```yaml
 initContainer:
   # ...
@@ -91,13 +91,24 @@ initContainer:
       exit 0
     fi
 
-    # wait for the database archive to be manually copied to the server
-    while [ ! -f /data/diskstation-media/pms.tar ]; do sleep 2; done;
+    echo "No existing PMS library found."
 
+    echo "Installing curl"
+    apk --update add curl
+
+    echo "Downloading pms.tar file"
+    curl http://example.com/pms.tar -o /pms.tar
+
+    echo "pms.tar file available."
+    echo "Creating Library folder"
     mkdir -p /config/Library
-    tar -xvf /data/diskstation-media/pms.tar -C /config/Library
+
+    echo "Extracting pms.tar file"
+    tar -xvf /pms.tar -C /config/Library
+
+    echo "Deleting downloaded pms.tar file"
+    rm /pms.tar
   
     echo "Done."
 ``` 
-If there is not already an existing plex library, this script looks for the file _/data/diskstation-media/pms.tar_ which is mounted using the rclone-configuration we made ealier. The content of this file is extracted to _/config/Library_.
-
+If there is not already an existing plex library, this script will download the _pms.tar_ file from the location you provoded. Then the content of this file is extracted to _/config/Library_.

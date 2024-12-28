@@ -81,51 +81,23 @@ initContainer:
       exit 0
     fi
   
-    # apk --update add curl
-    # curl http://example.com/pms.tgz -o pms.tgz
-    # tar -xvzf pms.tgz -C /config
-    # cp -r /config/data/Library /config/Library
-    # rm -rf /config/data pms.tgz
-
-    # wait for the database archive to be manually copied to the server
-    #while [ ! -f /pms.tar ]; do sleep 2; done;
-
     echo "No existing PMS library found."
+
+    echo "Installing curl"
+    apk --update add curl
+
+    echo "Downloading pms.tar file"
+    curl http://diskstation.fritz.box/pms.tar -o /pms.tar
     
-    echo "Installing rclone"
-    apk --update add rclone
-
-    echo "Installing fuse3"
-    apk add fuse3
-
-    echo "Creating directory for rclone configuration"
-    mkdir -p ~/.config/rclone
-
-    echo "Creating rclone configuration"
-    cat << EOF > ~/.config/rclone/rclone.conf
-    [diskstation-media]
-    type = smb
-    host = diskstation.fritz.box
-    user = plex
-    pass = hobcz9hmjUob02z2YVPEX6iGg8Gswa-kejsdM0pO-7DVU3QKZWFeKhtjLK_ANwmn
-    EOF
-
-    echo "Creating directory for mounting"
-    mkdir -p /mnt/media
-
-    echo "Mounting SMB share to directory"
-    rclone mount diskstation-media:/media /mnt/media
-
-    echo "Waiting for pms.tar file..."
-    while [ ! -f /mnt/media/pms.tar ]; do sleep 2; done;
-
     echo "pms.tar file available."
     echo "Creating Library folder"
     mkdir -p /config/Library
 
     echo "Extracting pms.tar file"
-    tar -xvf /mnt/media/pms.tar -C /config/Library
-    #rm pms.tar
+    tar -xvf /pms.tar -C /config/Library
+
+    echo "Deleting downloaded pms.tar file"
+    rm /pms.tar
   
     echo "Done."
 
