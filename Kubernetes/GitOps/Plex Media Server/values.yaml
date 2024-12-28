@@ -98,13 +98,13 @@ initContainer:
     curl https://rclone.org/install.sh | sudo bash
 
     echo "Creating rclone configuration"
-    cat <<EOF > ~/.config/rclone/rclone2.conf
-[diskstation-media]
-type = smb
-host = diskstation.fritz.box
-user = plex
-pass = hobcz9hmjUob02z2YVPEX6iGg8Gswa-kejsdM0pO-7DVU3QKZWFeKhtjLK_ANwmn
-EOF
+    cat << EOF > ~/.config/rclone/rclone2.conf
+    [diskstation-media]
+    type = smb
+    host = diskstation.fritz.box
+    user = plex
+    pass = hobcz9hmjUob02z2YVPEX6iGg8Gswa-kejsdM0pO-7DVU3QKZWFeKhtjLK_ANwmn
+    EOF
 
     echo "Creating directory for mounting"
     mkdir -p /mnt/media
