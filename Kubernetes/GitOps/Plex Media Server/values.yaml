@@ -91,20 +91,14 @@ initContainer:
     #while [ ! -f /pms.tar ]; do sleep 2; done;
 
     echo "No existing PMS library found."
-    echo "Installing curl"
-    apk --update add curl
-
-    #echo "Installing sudo"
-    #apk --update add sudo
-
     echo "Installing rclone"
     apk --update add rclone
 
-    #echo "Installing rclone"
-    #curl https://rclone.org/install.sh | sudo bash
+    echo "Creating directory for rclone configuration"
+    mkdir -p ~/.config/rclone
 
     echo "Creating rclone configuration"
-    cat << EOF > ~/.config/rclone/rclone2.conf
+    cat << EOF > ~/.config/rclone/rclone.conf
     [diskstation-media]
     type = smb
     host = diskstation.fritz.box
