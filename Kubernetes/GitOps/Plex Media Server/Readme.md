@@ -69,7 +69,10 @@ rclone:
 
 ## Migrate an existing plex installation
 If you have an existing plex installation and you want to migrate the configuration you need to follow these steps.
-> Note: These instructions are initially posted from the plex team [here](https://www.plex.tv/blog/plex-pro-week-23-a-z-on-k8s-for-plex-media-server/).
+
+> Note: These instructions are initially posted from the plex team [here](https://www.plex.tv/blog/plex-pro-week-23-a-z-on-k8s-for-plex-media-server/).  
+All of the following command need to be executed just once in order to migrate an existing plex installation.
+
 1. Open your existing plex server and disable the [empty trash setting](https://support.plex.tv/articles/200289326-emptying-library-trash/).
 
 2. Stop your plex server.
@@ -78,10 +81,18 @@ If you have an existing plex installation and you want to migrate the configurat
 So ssh into your NAS, become root, switch to the above directory and create a tarball using  
 `tar -cvf <SOME DIRECTORY>/pms.tar .`
 
-4. The plex backup needs to be available in the new kubernetes plex instance. We can use the initContainer script to achieve that. Upload your _pms.tar_ file to a http-available location (like Onedrive). Then adjust the following lines in the `values.yaml` file:  
+4. The plex backup needs to be available in the new kubernetes plex instance. We can use the initContainer script to achieve that. Mount the folder where you saved the _pms.tar_ file to your worker node using the following commands:  
+```shell
+sudo mkdir /mnt/pms-backup
+sudo mount -t cifs //<IP OF YOUR NAS>/<SOME DIRECTORY> /mnt/pms-backup -o username=plex,password="<YOUR PASSWORD HERE>"
+```
+
+5. Adjust the following lines in the `values.yaml` file:  
 ```yaml
 initContainer:
+
   # ...
+
   script: |-
     #!/bin/sh
     echo "fetching pre-existing pms database to import..."
@@ -90,25 +101,35 @@ initContainer:
       echo "PMS library already exists, exiting."
       exit 0
     fi
-
+  
     echo "No existing PMS library found."
 
-    echo "Installing curl"
-    apk --update add curl
-
-    echo "Downloading pms.tar file"
-    curl http://example.com/pms.tar -o /pms.tar
+    while [ ! -f /mnt/pms-backup/pms.tar ]; do
+      echo "Waiting for the database archive to be available..."
+      sleep 2
+    done
 
     echo "pms.tar file available."
     echo "Creating Library folder"
     mkdir -p /config/Library
 
     echo "Extracting pms.tar file"
-    tar -xvf /pms.tar -C /config/Library
+    tar -xf /mnt/pms-backup/pms.tar -C /config/Library
 
-    echo "Deleting downloaded pms.tar file"
-    rm /pms.tar
-  
     echo "Done."
+
+# ...
+
+extraVolumeMounts:
+  - name: pms-backup
+    mountPath: /mnt/pms-backup
+
+# ...
+
+extraVolumes:
+  - name: pms-backup
+    hostPath:
+      path: /mnt/pms-backup
+      type: Directory
 ``` 
-If there is not already an existing plex library, this script will download the _pms.tar_ file from the location you provoded. Then the content of this file is extracted to _/config/Library_.
+The _extraVolumeMounts_ variable specifies that we want to mount the directory to our init and pms container (although the init container would be sufficient). With _extraVolumes_ we create the necessary mount points for that. Finally if there is not already an existing plex library, the script will extract the _pms.tar_ file from the location you provided to _/config/Library_.

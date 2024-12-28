@@ -199,12 +199,12 @@ priorityClassName: ""
 # Common Labels for all resources created by this chart.
 commonLabels: {}
 
-extraEnv: {}
-# extraEnv:
+#extraEnv: {}
+extraEnv:
   # This claim is optional, and is only used for the first startup of PMS
   # The claim is obtained from https://www.plex.tv/claim/ is is only valid for a few minutes
-#   PLEX_CLAIM: "claim"
-#   HOSTNAME: "PlexServer"
+  PLEX_CLAIM: "claim-rbNR_fFNzauFtzy44-Ky"
+  HOSTNAME: "PlexServer"
 #   TZ: "Etc/UTC"
 #   PLEX_UPDATE_CHANNEL: "5"
 #   PLEX_UID: "uid of plex user"
@@ -215,18 +215,18 @@ extraEnv: {}
 
 
 # Optionally specify additional volume mounts for the PMS and init containers.
-# extraVolumeMounts: []
-extraVolumeMounts:
-  - name: pms-backup
-    mountPath: /mnt/pms-backup
+extraVolumeMounts: []
+# extraVolumeMounts:
+#   - name: pms-backup
+#     mountPath: /mnt/pms-backup
 
 # Optionally specify additional volumes for the pod.
 extraVolumes: []
-extraVolumes:
-  - name: pms-backup
-    hostPath:
-      path: /mnt/pms-backup
-      type: Directory
+# extraVolumes:
+#   - name: pms-backup
+#     hostPath:
+#       path: /mnt/pms-backup
+#       type: Directory
 
 extraContainers: []
 # extraContainers:
