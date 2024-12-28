@@ -222,11 +222,11 @@ extraVolumeMounts:
 
 # Optionally specify additional volumes for the pod.
 extraVolumes: []
-# extraVolumes:
-#   - name: dev-dri
-#     hostPath:
-#       path: /dev/dri
-#       type: Directory
+extraVolumes:
+  - name: pms-backup
+    hostPath:
+      path: /mnt/pms-backup
+      type: Directory
 
 extraContainers: []
 # extraContainers:
