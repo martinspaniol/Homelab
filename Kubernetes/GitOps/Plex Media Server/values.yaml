@@ -30,7 +30,7 @@ pms:
   storageClassName: longhorn
 
   # the volume size to provision for the PMS database
-  configStorage: 30Gi
+  configStorage: 50Gi
 
   # Name of an existing `PersistentVolumeClaim` for the PMS database
   # NOTE: When set, 'configStorage' and 'storageClassName' are ignored.
@@ -90,10 +90,10 @@ initContainer:
 
     echo "pms.tar file available."
     echo "Creating Library folder"
-    mkdir -p /config/Library
+    mkdir -p /config/Library/Application Support/Plex Media Server
 
     echo "Extracting pms.tar file"
-    tar -xf /mnt/pms-backup/pms.tar -C /config/Library
+    tar -xf /mnt/pms-backup/pms.tar -C /config/Library/Application Support/Plex Media Server
 
     echo "Done."
 
@@ -203,8 +203,8 @@ commonLabels: {}
 extraEnv:
   # This claim is optional, and is only used for the first startup of PMS
   # The claim is obtained from https://www.plex.tv/claim/ is is only valid for a few minutes
-  PLEX_CLAIM: "claim-k5rrzk3BxgBQP1zZUL8V"
-  HOSTNAME: "Diskstation"
+  PLEX_CLAIM: ""
+  HOSTNAME: "plex"
   TZ: "Europe/Berlin"
   PLEX_UPDATE_CHANNEL: "5"
   # PLEX_UID: "uid of plex user"
@@ -215,18 +215,18 @@ extraEnv:
 
 
 # Optionally specify additional volume mounts for the PMS and init containers.
-extraVolumeMounts: []
-# extraVolumeMounts:
-#   - name: pms-backup
-#     mountPath: /mnt/pms-backup
+# extraVolumeMounts: []
+extraVolumeMounts:
+  - name: pms-backup
+    mountPath: /mnt/pms-backup
 
 # Optionally specify additional volumes for the pod.
-extraVolumes: []
-# extraVolumes:
-#   - name: pms-backup
-#     hostPath:
-#       path: /mnt/pms-backup
-#       type: Directory
+# extraVolumes: []
+extraVolumes:
+  - name: pms-backup
+    hostPath:
+      path: /mnt/pms-backup
+      type: Directory
 
 extraContainers: []
 # extraContainers:
