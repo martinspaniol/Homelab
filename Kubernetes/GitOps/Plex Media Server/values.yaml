@@ -215,18 +215,18 @@ extraEnv:
 
 
 # Optionally specify additional volume mounts for the PMS and init containers.
-# extraVolumeMounts: []
-extraVolumeMounts:
-  - name: pms-backup
-    mountPath: /mnt/pms-backup
+extraVolumeMounts: []
+# extraVolumeMounts:
+#   - name: pms-backup
+#     mountPath: /mnt/pms-backup
 
 # Optionally specify additional volumes for the pod.
-# extraVolumes: []
-extraVolumes:
-  - name: pms-backup
-    hostPath:
-      path: /mnt/pms-backup
-      type: Directory
+extraVolumes: []
+# extraVolumes:
+#   - name: pms-backup
+#     hostPath:
+#       path: /mnt/pms-backup
+#       type: Directory
 
 extraContainers: []
 # extraContainers:
