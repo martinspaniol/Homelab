@@ -203,15 +203,15 @@ commonLabels: {}
 extraEnv:
   # This claim is optional, and is only used for the first startup of PMS
   # The claim is obtained from https://www.plex.tv/claim/ is is only valid for a few minutes
-  PLEX_CLAIM: "claim-rbNR_fFNzauFtzy44-Ky"
-  HOSTNAME: "PlexServer"
-#   TZ: "Etc/UTC"
-#   PLEX_UPDATE_CHANNEL: "5"
-#   PLEX_UID: "uid of plex user"
-#   PLEX_GID: "group id of plex user"
+  PLEX_CLAIM: "claim-k5rrzk3BxgBQP1zZUL8V"
+  HOSTNAME: "Diskstation"
+  TZ: "Europe/Berlin"
+  PLEX_UPDATE_CHANNEL: "5"
+  # PLEX_UID: "uid of plex user"
+  # PLEX_GID: "group id of plex user"
   # a list of CIDRs that can use the server without authentication
   # this is only used for the first startup of PMS
-#   ALLOWED_NETWORKS: "0.0.0.0/0"
+  ALLOWED_NETWORKS: "10.0.0.0/8"
 
 
 # Optionally specify additional volume mounts for the PMS and init containers.
