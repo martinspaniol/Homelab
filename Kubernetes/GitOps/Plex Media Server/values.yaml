@@ -68,26 +68,34 @@ initContainer:
   # A custom script that will be run in an init container to do any setup before the PMS service starts up
   # This will be run everytime the pod starts, make sure that some mechanism is included to prevent
   # this from running more than once if it should only be run on the first startup.
-  script: ""
+  #script: ""
   ###
   ### Example init script that will import a pre-existing pms database if one has not already been setup
   ### This pms database must be available through a URL (or some other mechanism to be pulled into the container)
-  # script: |-
-  #   #!/bin/sh
-  #   echo "fetching pre-existing pms database to import..."
-  #
-  #   if [ -d "/config/Library" ]; then
-  #     echo "PMS library already exists, exiting."
-  #     exit 0
-  #   fi
-  #
-  #   apk --update add curl
-  #   curl http://example.com/pms.tgz -o pms.tgz
-  #   tar -xvzf pms.tgz -C /config
-  #   cp -r /config/data/Library /config/Library
-  #   rm -rf /config/data pms.tgz
-  #
-  #   echo "Done."
+  script: |-
+    #!/bin/sh
+    echo "fetching pre-existing pms database to import..."
+  
+    if [ -d "/config/Library" ]; then
+      echo "PMS library already exists, exiting."
+      exit 0
+    fi
+  
+    # apk --update add curl
+    # curl http://example.com/pms.tgz -o pms.tgz
+    # tar -xvzf pms.tgz -C /config
+    # cp -r /config/data/Library /config/Library
+    # rm -rf /config/data pms.tgz
+
+    # wait for the database archive to be manually copied to the server
+    #while [ ! -f /pms.tar ]; do sleep 2; done;
+    while [ ! -f /data/diskstation-media/pms.tar ]; do sleep 2; done;
+
+    mkdir -p /config/Library
+    tar -xvf /data/diskstation-media/pms.tar -C /config/Library
+    #rm pms.tar
+  
+    echo "Done."
 
 # specify your own runtime class name eg use gpu
 runtimeClassName: ""
