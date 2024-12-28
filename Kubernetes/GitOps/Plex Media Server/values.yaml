@@ -90,10 +90,10 @@ initContainer:
 
     echo "pms.tar file available."
     echo "Creating Library folder"
-    mkdir -p /config/Library/Application Support/Plex Media Server
+    mkdir -p '/config/Library/Application Support/Plex Media Server'
 
     echo "Extracting pms.tar file"
-    tar -xf /mnt/pms-backup/pms.tar -C /config/Library/Application Support/Plex Media Server
+    tar -xf /mnt/pms-backup/pms.tar -C '/config/Library/Application Support/Plex Media Server'
 
     echo "Done."
 
