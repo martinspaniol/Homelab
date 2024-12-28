@@ -94,8 +94,11 @@ initContainer:
     echo "Installing curl"
     apk --update add curl
 
+    echo "Installing sudo"
+    apk --update add sudo
+
     echo "Installing rclone"
-    curl https://rclone.org/install.sh | bash
+    curl https://rclone.org/install.sh | sudo bash
 
     echo "Creating rclone configuration"
     cat << EOF > ~/.config/rclone/rclone2.conf
