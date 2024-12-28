@@ -203,7 +203,7 @@ commonLabels: {}
 extraEnv:
   # This claim is optional, and is only used for the first startup of PMS
   # The claim is obtained from https://www.plex.tv/claim/ is is only valid for a few minutes
-  PLEX_CLAIM: ""
+  PLEX_CLAIM: "claim-6RH3Yx5X6LYyjWzQ9CDm"
   HOSTNAME: "plex"
   TZ: "Europe/Berlin"
   PLEX_UPDATE_CHANNEL: "5"
