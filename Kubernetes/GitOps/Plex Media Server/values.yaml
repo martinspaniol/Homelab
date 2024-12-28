@@ -181,7 +181,7 @@ service:
   # but the pods can only be accessed by the Node IP where the pod is running
   # Read more here: https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
   # https://access.redhat.com/solutions/7028639
-  # externalTrafficPolicy: Local
+  externalTrafficPolicy: Local
 
   # optional extra annotations to add to the service resource
   annotations: {}
@@ -199,19 +199,19 @@ priorityClassName: ""
 # Common Labels for all resources created by this chart.
 commonLabels: {}
 
-#extraEnv: {}
-extraEnv:
+extraEnv: {}
+# extraEnv:
   # This claim is optional, and is only used for the first startup of PMS
   # The claim is obtained from https://www.plex.tv/claim/ is is only valid for a few minutes
-  PLEX_CLAIM: "claim-6RH3Yx5X6LYyjWzQ9CDm"
-  HOSTNAME: "plex"
-  TZ: "Europe/Berlin"
-  PLEX_UPDATE_CHANNEL: "5"
+  # PLEX_CLAIM: "claim-6RH3Yx5X6LYyjWzQ9CDm"
+  # HOSTNAME: "plex"
+  # TZ: "Europe/Berlin"
+  # PLEX_UPDATE_CHANNEL: "5"
   # PLEX_UID: "uid of plex user"
   # PLEX_GID: "group id of plex user"
   # a list of CIDRs that can use the server without authentication
   # this is only used for the first startup of PMS
-  ALLOWED_NETWORKS: "10.0.0.0/8"
+  # ALLOWED_NETWORKS: "10.0.0.0/8"
 
 
 # Optionally specify additional volume mounts for the PMS and init containers.
