@@ -83,22 +83,18 @@ initContainer:
   
     echo "No existing PMS library found."
 
-    echo "Installing curl"
-    apk --update add curl
+    while [ ! -f /mnt/pms-backup/pms.tar ]; do
+      echo "Waiting for the database archive to be available..."
+      sleep 2
+    done
 
-    echo "Downloading pms.tar file"
-    curl http://diskstation.fritz.box/pms.tar -o /pms.tar
-    
     echo "pms.tar file available."
     echo "Creating Library folder"
     mkdir -p /config/Library
 
     echo "Extracting pms.tar file"
-    tar -xvf /pms.tar -C /config/Library
+    tar -xf /mnt/pms-backup/pms.tar -C /config/Library
 
-    echo "Deleting downloaded pms.tar file"
-    rm /pms.tar
-  
     echo "Done."
 
 # specify your own runtime class name eg use gpu
@@ -219,10 +215,10 @@ extraEnv: {}
 
 
 # Optionally specify additional volume mounts for the PMS and init containers.
-extraVolumeMounts: []
-# extraVolumeMounts:
-#   - name: dev-dri
-#     mountPath: /dev/dri
+# extraVolumeMounts: []
+extraVolumeMounts:
+  - name: pms-backup
+    mountPath: /mnt/pms-backup:/mnt/pms-backup
 
 # Optionally specify additional volumes for the pod.
 extraVolumes: []
