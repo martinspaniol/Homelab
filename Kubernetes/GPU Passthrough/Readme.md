@@ -41,16 +41,16 @@ If you want to share the GPU with multiple containers you have to head over to t
 
 ```shell
 # Start NFD - if your cluster doesn't have NFD installed yet
-$ kubectl apply -k 'https://github.com/intel/intel-device-plugins-for-kubernetes/deployments/nfd?ref=<RELEASE_VERSION>'
+$ kubectl apply -k 'https://github.com/intel/intel-device-plugins-for-kubernetes/deployments/nfd?ref=v0.31.1'
 
 # Create NodeFeatureRules for detecting GPUs on nodes
-$ kubectl apply -k 'https://github.com/intel/intel-device-plugins-for-kubernetes/deployments/nfd/overlays/node-feature-rules?ref=<RELEASE_VERSION>'
+$ kubectl apply -k 'https://github.com/intel/intel-device-plugins-for-kubernetes/deployments/nfd/overlays/node-feature-rules?ref=v0.31.1'
 
 # Create GPU plugin daemonset
-$ kubectl apply -k 'https://github.com/intel/intel-device-plugins-for-kubernetes/deployments/gpu_plugin/overlays/monitoring_shared-dev_nfd/?ref=<RELEASE_VERSION>'
+$ kubectl apply -k 'https://github.com/intel/intel-device-plugins-for-kubernetes/deployments/gpu_plugin/overlays/monitoring_shared-dev_nfd/?ref=v0.31.1'
 ```
 
 To verfify the installation you can execute the following command to get all nodes with a gpu dicovered:  
 `kubectl get nodes -o=jsonpath="{range .items[*]}{.metadata.name}{'\n'}{' i915: '}{.status.allocatable.gpu\.intel\.com/i915}{'\n'}"`
 
-`kubectl get nodes -o=jsonpath="{range .items[*]}{.metadata.name}"`
+kubectl get no -o json | jq ".items[].metadata.labels"
