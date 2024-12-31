@@ -436,6 +436,8 @@ cat /etc/sysfs.conf
     sudo dkms status
     ```
 
+    > Note: In case you've missed the MOK setup for any reason, you can redo the MOK setup by executing `sudo mokutil --import /var/lib/shim-signed/mok/MOK.der`, entering a password and doing a reboot again.
+
 5. Edit the GRUB bootloader `/etc/default/grub` command line and change `GRUB_CMDLINE_LINUX_DEFAULT`:
     ```shell
     # old value:
@@ -482,6 +484,8 @@ cat /etc/sysfs.conf
     crw-rw----  1 root video  226,   0 Dec 31 14:53 card0
     crw-rw----  1 root render 226, 128 Dec 31 14:53 renderD128
     ```
+
+    > Note: If you can see more than one _card_ entry (i.e. `card0` and `card1`) , you have to shutdown the VM and in Proxmox set the PCI device as _Primary GPU_.
 
     _lspci_ should report `i915` and `xe` as modules and `i915` as the driver for the GPU:
     ```shell
