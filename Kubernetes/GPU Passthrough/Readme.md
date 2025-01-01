@@ -5,15 +5,6 @@ This guide will give you step by step instructions on how to passthrough a GPU i
 * You already followed [this guide](../../GPU%20Passthrough/Readme.md) to enable GPU passthrough to a proxmox VM. Your GPU is already visible inside the proxmox VM.
 
 # Instructions
-## Install Intel Device Plugin Operator
-```shell
-helm repo add intel https://intel.github.io/helm-charts/
-helm repo update
-```
-Install the Operator:
-`helm install device-plugin-operator intel/intel-device-plugins-operator [flags]`
-
-
 On the [Intel device plugin for Kubernetes](https://intel.github.io/intel-device-plugins-for-kubernetes/cmd/gpu_plugin/README.html) website, Intel provides the necessary configuration files for passing an Intel GPU to Kubernetes.  
 
 There are two differend methods available (in my case):
@@ -21,35 +12,96 @@ There are two differend methods available (in my case):
     or
 2. Pass the GPU to multiple containers.
 
-## Option 1: Pass the GPU to a single container
-If you want to go for option 1, just execute these lines from your rke2-admin VM. Replace the `<RELEASE_VERSION>` with the desired [release tag](https://github.com/intel/intel-device-plugins-for-kubernetes/tags). As of writing the latest release is `v0.31.1`.
+You can install the device plugins using a helm chart. On [this](https://intel.github.io/intel-device-plugins-for-kubernetes/INSTALL.html) page Intel summarizes the installation methods you can use. For installation using helm charts follow these steps:
 
+## Install helm repositories
 ```shell
-# Start NFD - if your cluster doesn't have NFD installed yet
-$ kubectl apply -k 'https://github.com/intel/intel-device-plugins-for-kubernetes/deployments/nfd?ref=<RELEASE_VERSION>'
-
-# Create NodeFeatureRules for detecting GPUs on nodes
-$ kubectl apply -k 'https://github.com/intel/intel-device-plugins-for-kubernetes/deployments/nfd/overlays/node-feature-rules?ref=<RELEASE_VERSION>'
-
-# Create GPU plugin daemonset
-$ kubectl apply -k 'https://github.com/intel/intel-device-plugins-for-kubernetes/deployments/gpu_plugin/overlays/nfd_labeled_nodes?ref=<RELEASE_VERSION>'
+helm repo add jetstack https://charts.jetstack.io # for cert-manager, should be already there
+helm repo add nfd https://kubernetes-sigs.github.io/node-feature-discovery/charts # for NFD
+helm repo add intel https://intel.github.io/helm-charts/ # for device-plugin-operator and plugins
+helm repo update
 ```
 
-## Option 2: Share the GPU with multiple containers
-
-If you want to share the GPU with multiple containers you have to head over to the [advanced installation](https://intel.github.io/intel-device-plugins-for-kubernetes/cmd/gpu_plugin/advanced-install.html) page. There you have a slightly different set of configuration files, but the steps are basically the same. Again replace the `<RELEASE_VERSION>` with the desired [release tag](https://github.com/intel/intel-device-plugins-for-kubernetes/tags) and execute these commands on your rke2-admin VM:
-
+## Installing cert-manager (usually already done)
+This is already done during the basic installation of rke2, so you may skip this step
 ```shell
-# Start NFD - if your cluster doesn't have NFD installed yet
-$ kubectl apply -k 'https://github.com/intel/intel-device-plugins-for-kubernetes/deployments/nfd?ref=<RELEASE_VERSION>'
-
-# Create NodeFeatureRules for detecting GPUs on nodes
-$ kubectl apply -k 'https://github.com/intel/intel-device-plugins-for-kubernetes/deployments/nfd/overlays/node-feature-rules?ref=<RELEASE_VERSION>'
-
-# Create GPU plugin daemonset
-$ kubectl apply -k 'https://github.com/intel/intel-device-plugins-for-kubernetes/deployments/gpu_plugin/overlays/monitoring_shared-dev_nfd/?ref=<RELEASE_VERSION>'
+helm install \
+    cert-manager jetstack/cert-manager \
+    --namespace cert-manager \
+    --create-namespace \
+    --version v1.16.2 \
+    --set crds.enabled=true
 ```
 
+## Installing NFD
+```shell
+helm install \
+    nfd nfd/node-feature-discovery \
+    --namespace node-feature-discovery \
+    --create-namespace
+```
+
+## Installing operator
+```shell
+helm install \
+    dp-operator intel/intel-device-plugins-operator \
+    --namespace inteldeviceplugins-system \
+    --create-namespace
+```
+
+## Installing specific plugins
+Replace `PLUGIN` with the desired plugin name. At least the following plugins are supported: gpu, sgx, qat, dlb, dsa & iaa.
+```shell
+helm install \
+    <PLUGIN> intel/intel-device-plugins-<PLUGIN> \
+    --namespace inteldeviceplugins-system \
+    --create-namespace \
+    --set nodeFeatureRule=true
+```
+
+### Customizing plugins
+To customize plugin features, we can take a look at the available chart values:
+```shell
+helm show values intel/intel-device-plugins-<PLUGIN>
+```
+
+For example, gpu plugin has these values:
+```yaml
+name: gpudeviceplugin-sample
+
+image:
+  hub: intel
+  tag: ""
+
+initImage:
+  enable: false
+  hub: intel
+  tag: ""
+
+sharedDevNum: 1 # < we can change this value to allow more than 1 container using the gpu at the same time
+logLevel: 2
+resourceManager: false
+enableMonitoring: true
+allocationPolicy: "none"
+
+nodeSelector:
+  intel.feature.node.kubernetes.io/gpu: 'true'
+
+tolerations:
+
+nodeFeatureRule: true
+```
+In my case the installation command will be as follows:
+```shell
+helm install \
+    gpu intel/intel-device-plugins-gpu \
+    --namespace inteldeviceplugins-system \
+    --create-namespace \
+    --set nodeFeatureRule=true \
+    --set sharedDevNum=30
+```
+
+## Verfiy the installation
 To verfify the installation you can execute the following command to get all nodes with a gpu dicovered:  
 `kubectl get nodes -o=jsonpath="{range .items[*]}{.metadata.name}{'\n'}{' i915: '}{.status.allocatable.gpu\.intel\.com/i915}{'\n'}"`
 
@@ -73,3 +125,29 @@ rke2-04
 rke2-05
  i915: 30 # < this is what we're looking for
 ```
+
+## Listing available versions
+To list all available versions of the operator as well as each plugin, use these commands.
+```shell
+helm search repo intel/intel-device-plugins-operator --versions
+helm search repo intel/intel-device-plugins-<plugin> --versions
+```
+
+## Upgrading the operator and plugins
+The upgrade of the deployed plugins can be done by simply installing a new release of the operator.
+
+The operator auto-upgrades operator-managed plugins (CR images and thus corresponding deployed daemonsets) to the current release of the operator.
+
+# Request a GPU in your deployments
+To request a GPU in your deployments you can use the `resources` entries in your `values.yaml` file. For example in [values.yaml file of the plex deployment](../GitOps/Plex%20Media%20Server/values.yaml) I've specified the following:
+```yaml
+pms:
+  # ...
+  resources:
+    limits:
+      gpu.intel.com/i915: "1"
+    requests:
+      gpu.intel.com/i915: "1"
+```
+With these settings the gpu device plugin will look for available resources for this deployment and place it on a appropriate node.
+
