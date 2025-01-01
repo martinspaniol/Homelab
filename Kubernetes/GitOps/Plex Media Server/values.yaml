@@ -51,7 +51,7 @@ pms:
     limits:
   #   cpu: 100m
   #   memory: 128Mi
-      gpu.intel.com/i915: "15"
+      gpu.intel.com/i915: "1"
     requests:
   #   cpu: 100m
   #   memory: 128Mi
