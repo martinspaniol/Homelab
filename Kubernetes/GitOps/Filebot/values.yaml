@@ -3,7 +3,7 @@ appName: "filebot"
 image: "jlesage/filebot:latest"
 domain: "unserneuesheim"
 
-storage: "10Mi"
+storage: "1Gi"
 storageClass: "longhorn"
 
 extraEnv:
