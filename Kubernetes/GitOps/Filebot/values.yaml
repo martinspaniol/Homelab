@@ -1,0 +1,30 @@
+replicas: 1
+appName: "filebot"
+image: "jlesage/filebot:latest"
+domain: "unserneuesheim"
+
+storage: "10Mi"
+storageClass: "longhorn"
+
+extraEnv:
+  # USER_ID: ${PUID}
+  # GROUP_ID: ${PGID}
+  # TZ: ${TZ}
+  # UMASK: 002
+  KEEP_APP_RUNNING: 1
+  AMC_ENABLED: 1
+  AMC_INTERVAL: 60 #in seconds
+  AMC_INPUT_STABLE_TIME: 30 #in seconds
+  AMC_PROCESS_MUSIC: "n"
+  AMC_ACTION: "move" #test, copy, move, symlink, hardlink, keeplink, duplicate or clone # default :  move
+  AMC_CONFLICT: "auto" #skip, auto
+  AMC_MATCH_MODE: "opportunistic" #opportunistic, strict
+  AMC_LANG: "German"
+  # AMC_MOVIE_FORMAT: "/data/media/movies/{plex.tail}"
+  AMC_MOVIE_FORMAT: "/data/media/movies/{~plex.id}"
+  # AMC_MOVIE_FORMAT: "/data/media/movies/{localize.deu.n} ({y})/{localize.deu.n} ({y})" #for louis de funes movies
+  # AMC_SERIES_FORMAT: "/data/media/tv/{plex.tail}"
+  AMC_SERIES_FORMAT: "/data/media/tv/{~plex.id}"
+  AMC_CUSTOM_OPTIONS: "--def clean: y" #deletes empty folders after all files are moved
+  AMC_INPUT_DIR: "/data/filebot/input"
+  AMC_OUTPUT_DIR: "/data/filebot/output"
