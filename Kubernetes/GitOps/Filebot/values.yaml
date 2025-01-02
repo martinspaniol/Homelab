@@ -210,14 +210,14 @@ extraEnv:
   AMC_CONFLICT: "auto" #skip, auto
   AMC_MATCH_MODE: "opportunistic" #opportunistic, strict
   AMC_LANG: "German"
-  # AMC_MOVIE_FORMAT: "/data/diskstation-media/media/movies/{plex.tail}"
-  AMC_MOVIE_FORMAT: "/data/diskstation-media/media/movies/{~plex.id}"
-  # AMC_MOVIE_FORMAT: "/data/diskstation-media/media/movies/{localize.deu.n} ({y})/{localize.deu.n} ({y})" #for louis de funes movies
-  # AMC_SERIES_FORMAT: "/data/diskstation-media/media/tv/{plex.tail}"
-  AMC_SERIES_FORMAT: "/data/diskstation-media/media/tv/{~plex.id}"
+  # AMC_MOVIE_FORMAT: "/output/media/movies/{plex.tail}"
+  AMC_MOVIE_FORMAT: "/output/media/movies/{~plex.id}"
+  # AMC_MOVIE_FORMAT: "/output/media/movies/{localize.deu.n} ({y})/{localize.deu.n} ({y})" #for louis de funes movies
+  # AMC_SERIES_FORMAT: "/output/media/tv/{plex.tail}"
+  AMC_SERIES_FORMAT: "/output/media/tv/{~plex.id}"
   AMC_CUSTOM_OPTIONS: "--def clean: y" #deletes empty folders after all files are moved
-  AMC_INPUT_DIR: "/data/diskstation-media/filebot/input"
-  AMC_OUTPUT_DIR: "/data/diskstation-media/filebot/output"
+  AMC_INPUT_DIR: "/output/filebot/input"
+  AMC_OUTPUT_DIR: "/output/filebot/output"
 
 
 # Optionally specify additional volume mounts for the app and init containers.
