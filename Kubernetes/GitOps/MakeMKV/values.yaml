@@ -242,8 +242,8 @@ extraEnv:
 extraVolumeMounts:
   - name: usb-drive-sr1
     mountPath: /dev/sr1
-  # - name: usb-drive-sg2
-  #   mountPath: /dev/sg2
+  - name: usb-drive-sg2
+    mountPath: /dev/sg2
 
 
 # Optionally specify additional volumes for the pod.
@@ -256,12 +256,10 @@ extraVolumeMounts:
 extraVolumes:
   - name: usb-drive-sr1
     hostPath:
-      path: /dev/disk/by-id/usb-HL-DT-ST_BD-RE_WH16NS60_002933017150-0:0
-      type: BlockDevice  # You can change this to `BlockDevice` if you expect it to be a block device
-  # - name: usb-drive-sg2
-  #   hostPath:
-  #     path: /dev/sg2
-  #     type: File  # You can change this to `BlockDevice` if you expect it to be a block device
+      path: /dev/sr1
+ - name: usb-drive-sg2
+    hostPath:
+      path: /dev/sg2
 
 extraContainers: []
 # extraContainers:

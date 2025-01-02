@@ -108,6 +108,8 @@ spec:
       {{- end }}
       containers:
       - name: {{ include "chart.fullname" . }}-app
+        securityContext:
+          privileged: true
         image: {{ include "chart.image" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
