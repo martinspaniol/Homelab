@@ -76,7 +76,7 @@ spec:
         - name: init-script-configmap
           mountPath: /init
       {{- if .Values.extraVolumeMounts }}
-        {{ toYaml .Values.extraVolumeMounts | indent 8}}
+{{ toYaml .Values.extraVolumeMounts | indent 8}}
       {{- end }}
       {{- end }}
       {{- if and .Values.rclone.enabled .Values.rclone.configSecret }}
@@ -128,7 +128,7 @@ spec:
       {{- end }}
       {{- end }}
       {{- if .Values.extraVolumeMounts }}
-        {{ toYaml .Values.extraVolumeMounts | indent 8 }}
+{{ toYaml .Values.extraVolumeMounts | indent 8 }}
       {{- end }}
     {{- if and .Values.rclone.enabled .Values.rclone.configSecret }}
     {{- range .Values.rclone.remotes }}
