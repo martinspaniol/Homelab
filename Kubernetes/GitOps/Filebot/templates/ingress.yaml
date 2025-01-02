@@ -26,27 +26,3 @@ spec:
   tls:
     secretName: unserneuesheim-tls # change to your cert
 {{- end }}
-# apiVersion: traefik.io/v1alpha1
-# kind: IngressRoute
-# metadata:
-#   name: filebot
-#   annotations: 
-#     kubernetes.io/ingress.class: traefik-external
-# spec:
-#   entryPoints:
-#     - websecure
-#   routes:
-#     - match: Host(`www.filebot.unserneuesheim.de`) # change to your domain
-#       kind: Rule
-#       services:
-#         - name: filebot
-#           port: 80
-#     - match: Host(`filebot.unserneuesheim.de`) # change to your domain
-#       kind: Rule
-#       services:
-#         - name: filebot
-#           port: 80
-#       middlewares:
-#         - name: default-headers
-#   tls:
-#     secretName: unserneuesheim-tls # change to your cert
