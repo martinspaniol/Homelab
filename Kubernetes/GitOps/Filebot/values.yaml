@@ -49,14 +49,6 @@ app:
 
   port: 5800
 
-  # Optionally specify additional volume mounts for the app container.
-  # extraVolumeMounts: []
-  extraVolumeMounts:
-    - name: filebot-license-data
-      mountPath: /config/license.psm
-      subPath: license.psm
-      readOnly: true
-
 # A basic image that will convert the configmap to a file in the rclone config volume
 # this is ignored if rclone is not enabled
 initContainer:
@@ -71,14 +63,31 @@ initContainer:
   # A custom script that will be run in an init container to do any setup before the app service starts up
   # This will be run everytime the pod starts, make sure that some mechanism is included to prevent
   # this from running more than once if it should only be run on the first startup.
-  script: ""
+  # script: ""
   ###
   ### Example init script that will import a pre-existing app database if one has not already been setup
   ### This app database must be available through a URL (or some other mechanism to be pulled into the container)
-  # script: |-
-  #   #!/bin/sh
+  script: |-
+    #!/bin/sh
     
-  #   # enter your script here..
+    # this moves the license file from /mnt/filebot-license-data/license.psm to /config/licence.psm only if ith's not already there
+
+    if [ -f /config/licence.psm ]; then
+        echo "File /config/licence.psm already exists. Exiting."
+        exit 0
+    fi
+
+    # If the file doesn't exist, copy license
+    echo "Copying /mnt/filebot-license-data/license.psm to /config/licence.psm..."
+    cp /mnt/filebot-license-data/license.psm /config/licence.psm
+
+    # Check if the copy was successful
+    if [ $? -eq 0 ]; then
+        echo "License file copied successfully."
+    else
+        echo "Failed to copy the license file."
+        exit 1
+    fi
 
 # specify your own runtime class name eg use gpu
 runtimeClassName: ""
@@ -210,10 +219,10 @@ extraEnv:
 
 
 # Optionally specify additional volume mounts for the app and init containers.
-extraVolumeMounts: []
-# extraVolumeMounts:
-#   - name: app-backup
-#     mountPath: /mnt/app-backup
+# extraVolumeMounts: []
+extraVolumeMounts:
+  - name: filebot-license-data
+    mountPath: /mnt/filebot-license-data
 
 # Optionally specify additional volumes for the pod.
 # extraVolumes: []
