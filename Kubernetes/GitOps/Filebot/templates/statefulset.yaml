@@ -67,11 +67,11 @@ spec:
       terminationGracePeriodSeconds: 120
       initContainers:
       {{- if .Values.initContainer.script }}
-      - name: {{ include "chart.fullname" . }}-pms-init
+      - name: {{ include "chart.fullname" . }}-app-init
         image: {{ include "chart.init_image" . }}
         command: ["/init/init.sh"]
         volumeMounts:
-        - name: pms-config
+        - name: app-config
           mountPath: /config
         - name: init-script-configmap
           mountPath: /init
@@ -172,7 +172,7 @@ spec:
       {{- with .Values.extraContainers }}
 {{- toYaml . | nindent 6 }}
       {{- end }}
-  {{- if not .Values.pms.configExistingClaim }}
+  {{- if not .Values.app.configExistingClaim }}
   volumeClaimTemplates:
   - metadata:
       name: app-config
