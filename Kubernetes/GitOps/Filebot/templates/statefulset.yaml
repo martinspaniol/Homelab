@@ -58,7 +58,7 @@ spec:
           name: {{ include "chart.fullname" . }}-init-script
       {{- end }}
       {{- if .Values.extraVolumes }}
-      {{ toYaml .Values.extraVolumes | indent 6 }}
+{{ toYaml .Values.extraVolumes | indent 6 }}
       {{- end }}
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
