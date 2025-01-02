@@ -177,10 +177,10 @@ commonLabels: {}
 
 # extraEnv: {}
 extraEnv:
-  USER_ID: ${PUID}
-  GROUP_ID: ${PGID}
-  TZ: ${TZ}
-  UMASK: 002
+  # USER_ID: ${PUID}
+  # GROUP_ID: ${PGID}
+  # TZ: ${TZ}
+  # UMASK: 002
   CLEAN_TMP_DIR: 1
   AUTO_DISC_RIPPER: 1
   AUTO_DISC_RIPPER_EJECT: 1
