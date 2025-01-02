@@ -127,6 +127,9 @@ spec:
           mountPropagation: HostToContainer
       {{- end }}
       {{- end }}
+      {{- if .Values.app.extraVolumeMounts }}
+        {{ toYaml .Values.app.extraVolumeMounts | indent 6 }}
+      {{- end }}
       {{- if .Values.extraVolumeMounts }}
         {{ toYaml .Values.extraVolumeMounts | indent 8 }}
       {{- end }}
