@@ -63,14 +63,24 @@ initContainer:
   # A custom script that will be run in an init container to do any setup before the app service starts up
   # This will be run everytime the pod starts, make sure that some mechanism is included to prevent
   # this from running more than once if it should only be run on the first startup.
-  script: ""
+  # script: ""
   ###
   ### Example init script that will import a pre-existing app database if one has not already been setup
   ### This app database must be available through a URL (or some other mechanism to be pulled into the container)
-  # script: |-
-  #   #!/bin/sh
+  script: |-
+    #!/bin/sh
     
-  #   # your script goes here
+    echo "Copying custom profiles from /profiles to /config/data"
+    cp -f /profiles/*.mmcp.xml /config/data
+
+    # Check if the operation succeeded
+    if [ $? -eq 0 ]; then
+        echo "Files copied successfully."
+    else
+        echo "Failed to copy files."
+        exit 1
+    fi
+
 
 # specify your own runtime class name eg use gpu
 runtimeClassName: ""
