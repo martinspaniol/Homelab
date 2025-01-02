@@ -12,15 +12,13 @@ spec:
     - websecure
   routes:
     # - match: Host(`{{ include "chart.fullname" . }}.unserneuesheim.de`)
-    - match: Host(`filebot.unserneuesheim.de`)
+    - match: Host(`www.filebot.unserneuesheim.de`)
       kind: Rule
       services:
         - name: {{ .Values.service.name }}
           port: {{ .Values.service.targetPort }}
-      middlewares:
-        - name: default-headers
     # - match: Host(`www.{{ include "chart.fullname" . }}.unserneuesheim.de`)
-    - match: Host(`www.filebot.unserneuesheim.de`)
+    - match: Host(`filebot.unserneuesheim.de`)
       kind: Rule
       services:
         - name: {{ .Values.service.name }}
