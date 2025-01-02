@@ -3,6 +3,7 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: {{ include "chart.fullname" . }}
+  namespace: traefik # has to be traefik because tls certificate is stored in that namespace
   labels:
     {{- include "chart.labels" . | nindent 4 }}
   annotations:
