@@ -16,6 +16,8 @@ spec:
       services:
         - name: {{ include "chart.fullname" . }}
           port: {{ .Values.service.port }}
+      middlewares:
+        - name: default-headers
     - match: Host(`www.{{ include "chart.fullname" . }}.unserneuesheim.de`)
       kind: Rule
       services:
