@@ -70,20 +70,18 @@ initContainer:
   script: |-
     #!/bin/sh
     
-    # this moves the license file from /mnt/filebot-license-data/license.psm to /config/licence.psm only if ith's not already there
+    # this moves the license file from /mnt/filebot-license-data/license.psm to /config/license.psm only if ith's not already there
 
     echo "Checking if license file exists..."
-    if [ -f "/config/licence.psm" ]; then
-        echo "File /config/licence.psm already exists. Exiting."
+    if [ -f "/config/license.psm" ]; then
+        echo "File /config/license.psm already exists. Exiting."
         exit 0
     fi
     echo "No license file found"
 
-    sleep 5m
-
     # If the file doesn't exist, copy license
-    echo "Copying /mnt/filebot-license-data/license.psm to /config/licence.psm..."
-    cp /mnt/filebot-license-data/license.psm /config/licence.psm
+    echo "Copying /mnt/filebot-license-data/license.psm to /config/license.psm..."
+    cp /mnt/filebot-license-data/license.psm /config/license.psm
 
     # Check if the copy was successful
     if [ $? -eq 0 ]; then
