@@ -14,12 +14,12 @@ spec:
     - match: Host(`{{ include "chart.fullname" . }}.unserneuesheim.de`)
       kind: Rule
       services:
-        - name: {{ .Values.service.name }}
+        - name: {{ include "chart.fullname" . }}
           port: {{ .Values.service.port }}
     - match: Host(`www.{{ include "chart.fullname" . }}.unserneuesheim.de`)
       kind: Rule
       services:
-        - name: {{ .Values.service.name }}
+        - name: {{ include "chart.fullname" . }}
           port: {{ .Values.service.port }}
       middlewares:
         - name: default-headers
