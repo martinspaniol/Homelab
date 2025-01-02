@@ -120,7 +120,7 @@ rclone:
     - "diskstation-media:/media"
 
   # if the remote volumes should be mounted as read only
-  readOnly: true
+  readOnly: false
 
   # additional arguments to give to rclone when mounting the volume
   additionalArgs: []
