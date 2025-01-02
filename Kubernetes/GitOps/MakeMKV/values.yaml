@@ -100,7 +100,7 @@ rclone:
   # this must be in the form of `name:[/optional/path]`
   # this remote will be mounted at `/data/name` in the app container
   remotes:
-    - "diskstation-media:/media/makemkv/output"
+    - "diskstation-media:/media/makemkv/output:/output"
 
   # if the remote volumes should be mounted as read only
   readOnly: false
