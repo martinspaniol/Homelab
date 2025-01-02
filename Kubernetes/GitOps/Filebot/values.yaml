@@ -72,7 +72,7 @@ initContainer:
     
     # this moves the license file from /mnt/filebot-license-data/license.psm to /config/licence.psm only if ith's not already there
 
-    if [ -f /config/licence.psm ]; then
+    if [ -f "/config/licence.psm" ]; then
         echo "File /config/licence.psm already exists. Exiting."
         exit 0
     fi
