@@ -49,6 +49,13 @@ app:
 
   port: 5800
 
+  # Optionally specify additional volume mounts for the app container.
+  # extraVolumeMounts: []
+  extraVolumeMounts:
+    - name: filebot-license-data
+      mountPath: /config
+      readOnly: true
+
 # A basic image that will convert the configmap to a file in the rclone config volume
 # this is ignored if rclone is not enabled
 initContainer:
@@ -208,12 +215,16 @@ extraVolumeMounts: []
 #     mountPath: /mnt/app-backup
 
 # Optionally specify additional volumes for the pod.
-extraVolumes: []
+# extraVolumes: []
 # extraVolumes:
 #   - name: app-backup
 #     hostPath:
 #       path: /mnt/app-backup
 #       type: Directory
+extraVolumes:
+  - name: filebot-license-data
+    secret:
+      secretName: {{ .Values.rclone.configSecret }}
 
 extraContainers: []
 # extraContainers:
