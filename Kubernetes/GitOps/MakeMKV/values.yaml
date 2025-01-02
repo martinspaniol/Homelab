@@ -257,7 +257,7 @@ extraVolumes:
   - name: usb-drive-sr1
     hostPath:
       path: /dev/sr1
- - name: usb-drive-sg2
+  - name: usb-drive-sg2
     hostPath:
       path: /dev/sg2
 
