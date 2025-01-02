@@ -58,7 +58,7 @@ spec:
           name: {{ include "chart.fullname" . }}-init-script
       {{- end }}
       {{- if .Values.extraVolumes }}
-{{ toYaml .Values.extraVolumes | indent 6 }}
+      {{ toYaml .Values.extraVolumes | indent 6 }}
       {{- end }}
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -76,7 +76,7 @@ spec:
         - name: init-script-configmap
           mountPath: /init
       {{- if .Values.extraVolumeMounts }}
-{{ toYaml .Values.extraVolumeMounts | indent 8}}
+        {{ toYaml .Values.extraVolumeMounts | indent 8}}
       {{- end }}
       {{- end }}
       {{- if and .Values.rclone.enabled .Values.rclone.configSecret }}
@@ -128,7 +128,7 @@ spec:
       {{- end }}
       {{- end }}
       {{- if .Values.extraVolumeMounts }}
-{{ toYaml .Values.extraVolumeMounts | indent 8 }}
+        {{ toYaml .Values.extraVolumeMounts | indent 8 }}
       {{- end }}
     {{- if and .Values.rclone.enabled .Values.rclone.configSecret }}
     {{- range .Values.rclone.remotes }}
@@ -150,7 +150,7 @@ spec:
         {{- end }}
         {{- with $.Values.rclone.resources }}
         resources:
-{{ toYaml . | indent 10 }}
+          {{ toYaml . | indent 10 }}
       {{- end }}
         lifecycle:
           preStop:
@@ -170,7 +170,7 @@ spec:
       {{- end }}
       {{- end }}
       {{- with .Values.extraContainers }}
-{{- toYaml . | nindent 6 }}
+      {{- toYaml . | nindent 6 }}
       {{- end }}
   {{- if not .Values.app.configExistingClaim }}
   volumeClaimTemplates:
