@@ -261,7 +261,7 @@ extraVolumes:
   - name: usb-drive-sg2
     hostPath:
       path: /dev/sg2
-      type: BlockDevice  # You can change this to `BlockDevice` if you expect it to be a block device
+      type: File  # You can change this to `BlockDevice` if you expect it to be a block device
 
 extraContainers: []
 # extraContainers:
