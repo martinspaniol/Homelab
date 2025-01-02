@@ -224,7 +224,7 @@ extraVolumeMounts: []
 extraVolumes:
   - name: filebot-license-data
     secret:
-      secretName: {{ .Values.rclone.configSecret }}
+      secretName: filebot-license
 
 extraContainers: []
 # extraContainers:
