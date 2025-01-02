@@ -155,7 +155,7 @@ spec:
         lifecycle:
           preStop:
             exec:
-              command: ["/bin/sh","-c","fusermount3 -uz /data/{{ (split ":" .)._0 }}"]
+              command: ["/bin/sh","-c","fusermount3 -uz /output"]
         securityContext:
           privileged: true
           capabilities:
