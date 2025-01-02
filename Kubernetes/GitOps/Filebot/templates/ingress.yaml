@@ -3,8 +3,8 @@
 # kind: IngressRoute
 # metadata:
 #   name: {{ include "chart.fullname" . }}
-#   # labels:
-#   #   {{- include "chart.labels" . | nindent 4 }}
+#   labels:
+#     {{- include "chart.labels" . | nindent 4 }}
 #   annotations:
 #     kubernetes.io/ingress.class: traefik-external
 # spec:
@@ -26,8 +26,6 @@
 #   tls:
 #     secretName: unserneuesheim-tls # change to your cert
 # {{- end }}
-
----
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
