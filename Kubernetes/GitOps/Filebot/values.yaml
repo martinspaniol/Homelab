@@ -53,7 +53,8 @@ app:
   # extraVolumeMounts: []
   extraVolumeMounts:
     - name: filebot-license-data
-      mountPath: /config/
+      mountPath: /config/license.psm
+      subPath: license.psm
       readOnly: true
 
 # A basic image that will convert the configmap to a file in the rclone config volume
