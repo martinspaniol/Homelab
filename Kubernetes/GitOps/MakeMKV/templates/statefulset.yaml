@@ -123,7 +123,8 @@ spec:
       {{- if and .Values.rclone.enabled .Values.rclone.configSecret }}
       {{- range .Values.rclone.remotes }}
         - name: rclone-media-{{ (split ":" .)._0 }}
-          mountPath: "/output/{{ (split ":" .)._0 }}"
+          # mountPath: "/output/{{ (split ":" .)._0 }}"
+          mountPath: "{{ (split ":" .)._2 }}"
           mountPropagation: HostToContainer
       {{- end }}
       {{- end }}
