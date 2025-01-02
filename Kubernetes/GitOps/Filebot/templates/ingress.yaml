@@ -1,53 +1,28 @@
-# {{- if .Values.ingress.enabled -}}
-# apiVersion: traefik.io/v1alpha1
-# kind: IngressRoute
-# metadata:
-#   name: {{ include "chart.fullname" . }}
-#   labels:
-#     {{- include "chart.labels" . | nindent 4 }}
-#   annotations:
-#     kubernetes.io/ingress.class: traefik-external
-# spec:
-#   entryPoints:
-#     - websecure
-#   routes:
-#     - match: Host(`{{ include "chart.fullname" . }}.unserneuesheim.de`)
-#       kind: Rule
-#       services:
-#         - name: {{ .Values.service.name }}
-#           port: {{ .Values.service.targetPort }}
-#     - match: Host(`www.{{ include "chart.fullname" . }}.unserneuesheim.de`)
-#       kind: Rule
-#       services:
-#         - name: {{ .Values.service.name }}
-#           port: {{ .Values.service.targetPort }}
-#       middlewares:
-#         - name: default-headers
-#   tls:
-#     secretName: unserneuesheim-tls # change to your cert
-# {{- end }}
-
+{{- if .Values.ingress.enabled -}}
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: filebot
+  name: {{ include "chart.fullname" . }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
   annotations:
     kubernetes.io/ingress.class: traefik-external
 spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`www.filebot.unserneuesheim.de`)
+    - match: Host(`{{ include "chart.fullname" . }}.unserneuesheim.de`)
       kind: Rule
       services:
-        - name: filebot
-          port: 80
-    - match: Host(`filebot.unserneuesheim.de`)
+        - name: {{ .Values.service.name }}
+          port: {{ .Values.service.targetPort }}
+    - match: Host(`www.{{ include "chart.fullname" . }}.unserneuesheim.de`)
       kind: Rule
       services:
-        - name: filebot
-          port: 80
+        - name: {{ .Values.service.name }}
+          port: {{ .Values.service.targetPort }}
       middlewares:
         - name: default-headers
   tls:
     secretName: unserneuesheim-tls # change to your cert
+{{- end }}
