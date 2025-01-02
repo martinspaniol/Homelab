@@ -255,7 +255,7 @@ extraVolumes:
   - name: usb-drive
     hostPath:
       path: /dev/sr1
-      type: Block  # You can change this to `Block` if you expect it to be a block device
+      type: BlockDevice  # You can change this to `BlockDevice` if you expect it to be a block device
 
 extraContainers: []
 # extraContainers:
