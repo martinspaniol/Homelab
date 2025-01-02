@@ -94,7 +94,24 @@ initContainer:
         fi
     done
 
-    echo "Sync completed."
+    echo "Profile sync completed."
+
+    # Source and destination directories
+    SOURCE_DIR="/settings"
+    DEST_DIR="/config"
+
+    # Copy *settings.conf from source to destination
+    echo "Syncing settings.conf from $SOURCE_DIR to $DEST_DIR..."
+
+    # Copy or update files from SOURCE_DIR to DEST_DIR
+    for file in "$SOURCE_DIR"/settings.conf; do
+        if [ -f "$file" ]; then
+            cp -f "$file" "$DEST_DIR"
+            echo "Copied: $(basename "$file")"
+        fi
+    done
+
+    echo "Settings sync completed."
 
 
 # specify your own runtime class name eg use gpu

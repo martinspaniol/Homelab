@@ -60,6 +60,10 @@ spec:
         configMap:
           defaultMode: 0700
           name: {{ include "chart.fullname" . }}-profiles
+      - name: init-settings-configmap
+        configMap:
+          defaultMode: 0700
+          name: {{ include "chart.fullname" . }}-settings
       {{- end }}
       {{- if .Values.extraVolumes }}
 {{ toYaml .Values.extraVolumes | indent 6 }}
@@ -81,6 +85,8 @@ spec:
           mountPath: /init
         - name: init-profiles-configmap
           mountPath: /profiles
+        - name: init-settings-configmap
+          mountPath: /settings
       {{- if .Values.extraVolumeMounts }}
 {{ toYaml .Values.extraVolumeMounts | indent 8}}
       {{- end }}

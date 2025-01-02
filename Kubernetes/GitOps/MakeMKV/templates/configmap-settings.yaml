@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name:  {{ include "chart.fullname" . }}-settings
+  labels:
+{{- include "chart.labels" . | nindent 4 }}
+data:
+  settings.conf: |
+    #
+    # MakeMKV settings file, written by MakeMKV v1.17.8 linux(x64-release)
+    #
+    
+    app_DataDir = "/config/data"
+    app_DefaultProfileName = "Custom"
+    app_DefaultSelectionString = "-sel:all,+sel:(favlang|eng|nolang|single),-sel:(havemulti|havecore),-sel:mvcvideo,=100:all,-10:favlang"
+    app_DestinationDir = "/output"
+    app_DestinationType = "2"
+    app_ExpertMode = "1"
+    app_Java = ""
+    app_Key = "T-lp4bZXFohCJOKraCftH2Z@oExMkXXEcuqsd8wNs3qjNSYf2Y1BQqIkJpxOCbBo@KTV"
+    app_PreferredLanguage = "ger"
+    app_Proxy = ""
+    app_ShowAVSyncMessages = "1"
+    app_ShowDebug = "1"
+    app_ccextractor = "/opt/makemkv/bin/mmccextr"
+    sdf_Stop = ""
+    speed_HL-DT-ST_BD-RE__WH16NS60_1.02_211810291936_KLHL8JB1707 = "0=99"
