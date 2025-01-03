@@ -27,25 +27,22 @@ app:
   # NOTE: When set, 'configStorage' and 'storageClassName' are ignored.
   configExistingClaim: ""
 
-  # Enabling this will add gpu.intel.com/i915: "1" to limits and requests
-  gpu:
-    intel:
-      enabled: true
-
-  resources: {}
-  # resources:
+  # resources: {}
+  resources:
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-    # limits:
+    limits:
     #   cpu: 100m
     #   memory: 128Mi
     #   akri.sh/akri-dvddrive: "1"
-    # requests:
+        gpu.intel.com/i915: "1"
+    requests:
     #   cpu: 100m
     #   memory: 128Mi
-    #   akri.sh/akri-dvddrive: "1"      
+    #   akri.sh/akri-dvddrive: "1"
+        gpu.intel.com/i915: "1"
 
   port: 5800
 
