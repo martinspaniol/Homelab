@@ -113,7 +113,7 @@ rclone:
     registry: index.docker.io
     repository: rclone/rclone
     # If unset use latest
-    tag: 1.62.2
+    tag: "latest"
     sha: ""
     pullPolicy: IfNotPresent
 
@@ -135,7 +135,9 @@ rclone:
   readOnly: true
 
   # additional arguments to give to rclone when mounting the volume
-  additionalArgs: []
+  # additionalArgs: []
+  additionalArgs:
+    - --vfs-cache-mode=full
 
   resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
