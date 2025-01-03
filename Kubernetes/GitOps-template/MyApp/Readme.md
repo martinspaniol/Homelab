@@ -110,8 +110,6 @@ rclone configurations will be stored in `~/.config/rclone/rclone.conf`.
 
 </details>
 
-
-
 [def]: ./fleet.yaml
 [def2]: ./Chart.yaml
 [def3]: ./values.yaml
