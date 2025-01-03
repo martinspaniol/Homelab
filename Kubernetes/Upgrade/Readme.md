@@ -55,3 +55,12 @@ kubectl apply -f https://raw.githubusercontent.com/JamesTurland/JimsGarage/main/
 kubectl delete -f kube-vip
 kubectl apply -f kube-vip
 ```
+# Upgrade Cert-Manager
+```shell
+helm upgrade --install cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --set-string nodeSelector.worker="true" \
+  --set-string webhook.nodeSelector.worker="true" \
+  --set-string cainjector.nodeSelector.worker="true" \
+  --set-string startupapicheck.nodeSelector.worker="true"
+```
