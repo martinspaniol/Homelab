@@ -1,6 +1,6 @@
 apiVersion: v2
 name: mkvtoolnix
-description: <DESCRIPTION>
+description: A Helm chart for deploying a MKVToolNix to a kubernetes cluster
 
 keywords:
 - MKVToolNix
