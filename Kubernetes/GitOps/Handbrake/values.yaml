@@ -30,7 +30,7 @@ app:
   # Enabling this will add gpu.intel.com/i915: "1" to limits and requests
   gpu:
     intel:
-      enabled: false
+      enabled: true
 
   resources: {}
   # resources:
