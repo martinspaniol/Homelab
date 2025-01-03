@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rclone-config
+type: Opaque
+stringData:
+  rclone.conf: |
+    [diskstation-media]
+    type = smb
+    host = diskstation.fritz.box
+    user = plex
+    pass = hobcz9hmjUob02z2YVPEX6iGg8Gswa-kejsdM0pO-7DVU3QKZWFeKhtjLK_ANwmn
