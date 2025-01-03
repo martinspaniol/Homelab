@@ -3,16 +3,16 @@
 This guide will give you step by step instructions on how to setup a Plex Personal Media Server (PMS) with the [Official Plex Helm Chart](https://github.com/plexinc/pms-docker/tree/master/charts/plex-media-server) on your RKE2 Cluster.  
 Since I have an existing plex instance running on Docker I will also take care of migrating this instance to RKE2.
 
-# Prerequisites
+## Prerequisites
 
 I assume you fullfill these prerequesites:
 
 * RKE2 is already setup and running
 * You're using traefik and it's setup and running as well
 
-# Instructions
+## Instructions
 
-## rclone config
+### rclone config
 
 1. Install the latest version of rclone
 `sudo -v ; curl https://rclone.org/install.sh | sudo bash`
@@ -85,7 +85,7 @@ rclone configurations will be stored in `~/.config/rclone/rclone.conf`.
           - "diskstation-media:/media" # /media is the name of the smb share, diskstation-media is the config name within rlcone.conf
     ```
 
-## Migrate an existing plex installation (optional)
+### Migrate an existing plex installation (optional)
 
 If you have an existing plex installation and you want to migrate the configuration you need to follow these steps.
 
@@ -174,7 +174,7 @@ So ssh into your NAS, become root, switch to the above directory and create a ta
 
 Now we've made all preparations for migrating and can continue.
 
-## Additional configurations
+### Additional configurations
 
 We need to make some additional configurations to prepare the deployment for our environment:
 
@@ -273,13 +273,13 @@ We need to make some additional configurations to prepare the deployment for our
           X-Forwarded-Proto: https
     ```
 
-## Deploy your code
+### Deploy your code
 
 After everything is setup, deploy your code. Since we're using fleet and configured GitOps, it's as simple as commiting our code to the repository. Fleet will take care of the rest and start deploying our code.  
 The init-Container will start first and take some time for extracting the pms library. For me the library is about 29GiB and it took approx. 20 minutes.  
 After the extraction is finished, pms boot up successfully and I could reach my plex instance. **YAY!**
 
-## Configure your new plex instance
+### Configure your new plex instance
 
 You should be able to login to your plex instance, still we need to adjust some settings. If you migrated from an old plex instance your media files will probably not play. That's okay and we can fix that.
 
@@ -297,7 +297,7 @@ You should be able to login to your plex instance, still we need to adjust some 
 
     Turn on [empty trash setting](https://support.plex.tv/articles/200289326-emptying-library-trash/) again.
 
-## Configure traefik
+### Configure traefik
 
 If you followed the above steps you may notice when playing some media from an external connection (like your mobile phone), plex will always think that this traffic comes from an internal ip address. Bandwidth restrictions and other settings for remote connections may not apply. This is because traefik is not forwarding your external IP adress to your plex instance.  
 To fix that we need to adjust the `values.yaml` file for traefik (**not** for plex!). You find this file in this repository [here](../../Traefik/Helm/Traefik/values.yaml). Add `externalTrafficPolicy: Local` to the service configuration:
@@ -354,7 +354,7 @@ Events:                   <none>
 
 Now you can try to watch some media from an external connection again. Plex should report that your connection is indeed external and apply all restrictions to it (bandwidth limitation, transcoding, etc.).
 
-## Cleanup after deployment
+### Cleanup after deployment
 
 If you've migrated from an old plex instance, we need to clean up a few things after the first startup and configuration of plex.
 
