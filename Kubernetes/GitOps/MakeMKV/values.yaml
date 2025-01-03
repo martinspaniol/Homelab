@@ -152,9 +152,9 @@ rclone:
   readOnly: false
 
   # additional arguments to give to rclone when mounting the volume
-  additionalArgs: []
-  # additionalArgs:
-  #   - "--vfs-cache-mode=writes"
+  # additionalArgs: []
+  additionalArgs:
+    - --vfs-cache-mode=writes
 
   resources: {}
   # resources:
