@@ -76,6 +76,8 @@ initContainer:
     SOURCE_DIR="/profiles"
     DEST_DIR="/config/data"
 
+    mkdir -p "$DEST_DIR"
+
     # Copy *.mmcp.xml files from source to destination
     echo "Syncing *.mmcp.xml files from $SOURCE_DIR to $DEST_DIR..."
 
@@ -88,7 +90,7 @@ initContainer:
     done
 
     # Remove files in DEST_DIR that no longer exist in SOURCE_DIR
-    for file in "$DEST_DIR/*.mmcp.xml"; do
+    for file in "$DEST_DIR"/*.mmcp.xml; do
         base_file=$(basename "$file")
         if [ ! -f "$SOURCE_DIR/$base_file" ]; then
             rm -f "$file"
