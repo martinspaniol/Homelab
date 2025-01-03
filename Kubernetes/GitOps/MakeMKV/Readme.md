@@ -1,6 +1,6 @@
 # Introduction
 
-This guide will give you step by step instructions on how to setup a Filebot on your RKE2 Cluster.
+This guide will give you step by step instructions on how to setup a MakeMKV on your RKE2 Cluster.
 
 # Prerequisites
 I assume you fullfill these prerequesites:
@@ -8,287 +8,938 @@ I assume you fullfill these prerequesites:
 * You're using traefik and it's setup and running as well
 
 # Instructions
-## rclone config
-1. Install the latest version of rclone
-`sudo -v ; curl https://rclone.org/install.sh | sudo bash`
 
-2. Create a new rclone configuration  
-`rclone config`  
-rclone configurations will be stored in `~/.config/rclone/rclone.conf`.
+## Installing Akri
+Needed for access to USB drives
 
-3. Press `n` to create a new remote.
-
-4. Enter the name of the remote connection, i.e. `diskstation-media`.
-
-5. Select the type of storage to configure. For SMB select `46` or enter `smb`.
-
-6. Enter the hostname of the SMB server, i.e. `diskstation.fritz.box`.
-
-7. Enter the SMB username, i.e. `plex`
-
-8. Port number, default port for SMB is `445`.
-
-9. Enter the SMB password. Confirm the password.
-
-10. Enter the domain name (optional) or skip.
-
-11. Enter a service principal name (optional) or skip.
-
-12. Edit advanced configuration (optional) or skip.
-
-13. To keep this configuration press `y`.
-
-14. Quit the configuration mode with `q`.
-
-    Your generated rclone configuration file should look like this:  
-    ```
-    [diskstation-media]
-    type = smb
-    host = diskstation.fritz.box
-    user = plex
-    pass = hobcz9hmjUob02z2YVPEX6iGg8Gswa-kejsdM0pO-7DVU3QKZWFeKhtjLK_ANwmn
-    ```
-
-15. The rclone configuration must be stored as a secret in Kubernetes. To do so create a `rclone-config.yaml` file in the templates directory with the following content:
-
-    ```yaml
-    ---
-    apiVersion: v1
-    kind: Secret
-    metadata:
-      name: rclone-config
-    type: Opaque
-    stringData:
-      rclone.conf: |
-        [diskstation-media]
-        type = smb
-        host = diskstation.fritz.box
-        user = plex
-        pass = hobcz9hmjUob02z2YVPEX6iGg8Gswa-kejsdM0pO-7DVU3QKZWFeKhtjLK_ANwmn
-    ```
-
-16. Adjust the rclone-configuration in the `values.yaml` file: 
-
-    ```yaml
-    rclone:
-      # if the rclone sidecar should be created
-      enabled: true
-
-      # ...
-      
-      remotes:
-          - "diskstation-media:/media" # /media is the name of the smb share, diskstation-media is the config name within rlcone.conf
-    ```
-
-## Additional configurations
-
-We need to make some additional configurations to prepare the deployment for our environment:
-
-1. In the `values.yaml` file adjust the `nodeSelector`, so filebot will only run on your worker nodes:
-
-    ```yaml
-    nodeSelector:
-      worker: "true"
-    ```
-
-2. Since we're deploying with fleet, create a `fleet.yaml` file with the following content:
-
-    ```yaml
-    # This file and all contents in it are OPTIONAL.
-    
-    # The namespace this chart will be installed and restricted to,
-    # if not specified the chart will be installed to "default"
-    namespace: filebot # adjust this to the namespace you wish
-    
-    # Custom helm options
-    helm:
-      # The release name to use. If empty a generated release name will be used
-      releaseName: filebot
-    
-      # The directory of the chart in the repo.  Also any valid go-getter supported
-      # URL can be used there is specify where to download the chart from.
-      # If repo below is set this value is the chart name in the repo
-      chart: ""
-    
-      # An https to a valid Helm repository to download the chart from
-      repo: ""
-    
-      # Used if repo is set to look up the version of the chart
-      version: ""
-    
-      # Force recreate resource that can not be updated
-      force: false
-    
-      # How long for helm to wait for the release to be active. If the value
-      # is less that or equal to zero, we will not wait in Helm
-      timeoutSeconds: 0
-    
-      # Custom values that will be passed as values.yaml to the installation
-      values:
-        replicas: 1
-    ```
-
-3. Since we're using traefik we need an ingress for plex so we can reach it. Create a `ingress.yaml` file in the templates folder with the following content:
-
-    ```yaml
-    ---
-    apiVersion: traefik.io/v1alpha1
-    kind: IngressRoute
-    metadata:
-      name: plex
-      annotations: 
-        kubernetes.io/ingress.class: traefik-external
-    spec:
-      entryPoints:
-        - websecure
-      routes:
-        - match: Host(`www.plex.unserneuesheim.de`) # change to your domain
-          kind: Rule
-          services:
-            - name: {{ include "pms-chart.fullname" . }}
-              port: 32400
-        - match: Host(`plex.unserneuesheim.de`) # change to your domain
-          kind: Rule
-          services:
-            - name: {{ include "pms-chart.fullname" . }}
-              port: 32400
-          middlewares:
-            - name: default-headers
-      tls:
-        secretName: unserneuesheim-tls # change to your cert
-    
-    ```
-
-    Additionally create a `default-headers.yaml` file in the templates directory with the following content:
-
-    ```yaml
-    apiVersion: traefik.io/v1alpha1
-    kind: Middleware
-    metadata:
-      name: default-headers
-    spec:
-      headers:
-        browserXssFilter: true
-        contentTypeNosniff: true
-        forceSTSHeader: true
-        stsIncludeSubdomains: true
-        stsPreload: true
-        stsSeconds: 15552000
-        customFrameOptionsValue: SAMEORIGIN
-        customRequestHeaders:
-          X-Forwarded-Proto: https
-    ```
-
-## Deploy your code
-
-After everything is setup, deploy your code. Since we're using fleet and configured GitOps, it's as simple as commiting our code to the repository. Fleet will take care of the rest and start deploying our code.  
-The init-Container will start first and take some time for extracting the pms library. For me the library is about 29GiB and it took approx. 20 minutes.  
-After the extraction is finished, pms boot up successfully and I could reach my plex instance. **YAY!**
-
-## Configure your new plex instance
-
-You should be able to login to your plex instance, still we need to adjust some settings. If you migrated from an old plex instance your media files will probably not play. That's okay and we can fix that.
-
-1. > Optional if you migrated from another plex instance.  
-
-    In plex go to _Settings > Libraries_ and for each library (i.e. movies, tv shows, etc.) **add**     the path to the location where to find the files. **Do not remove the old path yet!** Since we     chose `diskstation-media:/media` in the rclone-configuration, our media files are mounted to `/    data/diskstation-media` inside the pms instance.  
-    Let plex scan the path you've added, this will happen automatically. Plex should recognize each     file and associate the new path to it. This may take some minutes to complete.  
-    After the scan has finished edit again your libraries and remove the old path from each. Plex     will again scan the path but this will just take a few seconds. 
-
-2. Change the friendly name of your plex server if you want to. Go to _Settings > General_ and choose a friendly name.
-
-3. Probably your network settings might have changed. Go to _Settings > Network_ and adjust the _LAN Networks_ and also the _Custom server access URLs_.
-
-4. > Optional if you migrated from another plex instance.  
-
-    Turn on [empty trash setting](https://support.plex.tv/articles/200289326-emptying-library-trash/) again.
-
-## Configure traefik
-
-If you followed the above steps you may notice when playing some media from an external connection (like your mobile phone), plex will always think that this traffic comes from an internal ip address. Bandwidth restrictions and other settings for remote connections may not apply. This is because traefik is not forwarding your external IP adress to your plex instance.  
-To fix that we need to adjust the `values.yaml` file for traefik (**not** for plex!). You find this file in this repository [here](../../Traefik/Helm/Traefik/values.yaml). Add `externalTrafficPolicy: Local` to the service configuration:
-
-```yaml
-service:
-  # ...
-  spec:
-    externalTrafficPolicy: Local # Preserve the client IP
-```
-Save this change to `~/Helm/Traefik/values.yaml` on your rke2-admin VM and apply it by executing the following command:  
-`helm upgrade --namespace=traefik traefik traefik/traefik -f ~/Helm/Traefik/values.yaml`
-
-You can check if that worked with that command:  
-`kubectl describe svc traefik -n traefik`
-The result should be this:  
-```yaml
-Name:                     traefik
-Namespace:                traefik
-Labels:                   app.kubernetes.io/instance=traefik-traefik
-                          app.kubernetes.io/managed-by=Helm
-                          app.kubernetes.io/name=traefik
-                          helm.sh/chart=traefik-33.2.1
-Annotations:              field.cattle.io/publicEndpoints:
-                            [{"addresses":["192.168.0.180"],"port":80,"protocol":"TCP","serviceName":"traefik:traefik","allNodes":false},{"addresses":["192.168.0.180"...
-                          kube-vip.io/loadbalancerIPs: 192.168.0.180
-                          meta.helm.sh/release-name: traefik
-                          meta.helm.sh/release-namespace: traefik
-                          metallb.io/ip-allocated-from-pool: first-pool
-Selector:                 app.kubernetes.io/instance=traefik-traefik,app.kubernetes.io/name=traefik
-Type:                     LoadBalancer
-IP Family Policy:         SingleStack
-IP Families:              IPv4
-IP:                       10.43.93.192
-IPs:                      10.43.93.192
-Desired LoadBalancer IP:  192.168.0.180
-LoadBalancer Ingress:     192.168.0.180 (VIP)
-Port:                     web  80/TCP
-TargetPort:               web/TCP
-NodePort:                 web  30607/TCP
-Endpoints:                10.42.3.26:8000,10.42.4.33:8000
-Port:                     websecure  443/TCP
-TargetPort:               websecure/TCP
-NodePort:                 websecure  31254/TCP
-Endpoints:                10.42.3.26:8443,10.42.4.33:8443
-Session Affinity:         None
-External Traffic Policy:  Local # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<< look for this!
-Internal Traffic Policy:  Cluster
-HealthCheck NodePort:     30721
-Events:                   <none>
+### Add helm repo and install charts
+```shell
+helm repo add akri-helm-charts https://project-akri.github.io/akri/
+helm install akri akri-helm-charts/akri
 ```
 
-Now you can try to watch some media from an external connection again. Plex should report that your connection is indeed external and apply all restrictions to it (bandwidth limitation, transcoding, etc.).
+Using `helm show values akri-helm-charts/akri` we can take a look at all values akri has (an we can manipulate):
+<details>
+  <summary>Akri values:</summary>
 
-## Cleanup after deployment
+  ```yaml
+  # Default values for akri.
+  # This is a YAML-formatted file.
+  # Declare variables to be passed into your templates.
 
-If you've migrated from an old plex instance, we need to clean up a few things after the first startup and configuration of plex. 
+  # useLatestContainers is specified if the latest or latest-dev
+  # tags should be used.  This will be overridden if *.image.tag
+  # is specified.
+  useLatestContainers: false
 
-1. To remove the mount for the old plex library adjust your `values.yaml` file and comment out the `extraVolumeMounts` and `extraVolumes`. 
+  # useDevelopmentContainers is specified if the non-release (*-dev)
+  # tags should be used.  This will be overridden if *.image.tag
+  # is specified.
+  useDevelopmentContainers: false
 
-    ```yaml
-    # Optionally specify additional volume mounts for the PMS and init containers.
-    extraVolumeMounts: []
-    # extraVolumeMounts:
-    #   - name: pms-backup
-    #     mountPath: /mnt/pms-backup
-    
-    # Optionally specify additional volumes for the pod.
-    extraVolumes: []
-    # extraVolumes:
-    #   - name: pms-backup
-    #     hostPath:
-    #       path: /mnt/pms-backup
-    #       type: Directory
-    ```
+  # imagePullSecrets is the array of secrets needed to pull images.
+  # This can be set from the helm command line using `--set imagePullSecrets[0].name="mysecret"`
+  imagePullSecrets: []
 
-    Commit these changes. Fleet will automatically redeploy everything and the mount should be gone. To check that, ssh into your rke2-admin VM and execute the following command:  
+  cleanupHook:
+    # enabled defines whether to enable the Helm pre-delete hook to cleanup
+    # Configurations during chart deletion. Also applies associated RBAC for the
+    # hook. More information on Helm hooks:
+    # https://helm.sh/docs/topics/charts_hooks/
+    enabled: true
 
-    ```shell
-    kubectl exec -it plex-plex-media-server-0 -n plex --container plex-plex-media-server-pms -- sh
-    ```
+  # generalize references to `apiGroups` and `apiVersion` values for Akri CRDs
+  crds:
+    group: akri.sh
+    version: v0
 
-    This will open a shell in the pms container `plex-plex-media-server-pms` which is inside the pod `plex-plex-media-server-0` within the namespace `plex`. Note that `/mnt/pms-backup` should not be available anymore.
+  rbac:
+    # enabled defines whether to apply rbac to Akri
+    enabled: true
 
-2. Remove the mount from your worker nodes. ssh into each node and execute the following command:  
-`sudo umount /mnt/pms-backup` and `sudo rm -r /mnt/pms-backup`.
+  prometheus:
+    # enabled defines whether metrics ports are exposed on
+    # the Controller and Agent
+    enabled: false
+    # endpoint is the path the port exposed for metrics
+    endpoint: /metrics
+    # port is the port that the metrics service is exposed on
+    port: 8080
+    # portName is the name of the metrics port
+    portName: metrics
 
-3. Finally (and if you're sure that everything is working) you can delete your old plex instance and the _pms.tar_ file wherever you saved it.
+  controller:
+    # enabled defines whether to apply the Akri Controller
+    enabled: true
+    image:
+      # repository is the Akri Controller container reference
+      repository: ghcr.io/project-akri/akri/controller
+      # tag is the Akri Controller container tag
+      # controller.yaml will default to v(AppVersion)[-dev]
+      # with `-dev` added if `useDevelopmentContainers` is specified
+      tag:
+      # pullPolicy is the Akri Controller pull policy
+      pullPolicy: "Always"
+    # ensures container doesn't run with unnecessary priviledges
+    securityContext:
+      runAsUser: 1000
+      allowPrivilegeEscalation: false
+      runAsNonRoot: true
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop: ["ALL"]
+    # onlyOnControlPlane dictates whether the Akri Controller will only run on nodes with
+    # the label with (key, value) of ("node-role.kubernetes.io/master", "")
+    onlyOnControlPlane: false
+    # allowOnControlPlane dictates whether a toleration will be added to allow to Akri Controller
+    # to run on the control plane node
+    allowOnControlPlane: true
+    # nodeSelectors is the array of nodeSelectors used to target nodes for the Akri Controller to run on
+    # This can be set from the helm command line using `--set controller.nodeSelectors.label="value"`
+    nodeSelectors: {}
+    resources:
+      # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+      # for it to be scheduled by the Kubernetes Scheduler
+      memoryRequest: 11Mi
+      # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+      # for it to be scheduled by the Kubernetes Scheduler
+      cpuRequest: 10m
+      # memoryLimit defines the maximum amount of RAM this Pod can consume.
+      memoryLimit: 100Mi
+      # cpuLimit defines the maximum amount of CPU this Pod can consume.
+      cpuLimit: 26m
+
+  agent:
+    # enabled defines whether to apply the Akri Agent
+    enabled: true
+    # full specifies that the `agent-full` image should be used which has embedded Discovery Handlers
+    full: false
+    image:
+      # repository is the Akri Agent container reference
+      repository: ghcr.io/project-akri/akri/agent
+      # fullRepository is the container reference for the Akri Agent with embedded Discovery Handlers
+      fullRepository: ghcr.io/project-akri/akri/agent-full
+      # tag is the Akri Agent container tag
+      # agent.yaml will default to v(AppVersion)[-dev]
+      # with `-dev` added if `useDevelopmentContainers` is specified
+      tag:
+      # pullPolicy is the Akri Agent pull policy
+      pullPolicy: ""
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+    host:
+      # discoveryHandlers is the location of Akri Discovery Handler sockets and
+      # the agent registration service
+      discoveryHandlers: /var/lib/akri
+      # kubeletDevicePlugins is the location of the kubelet device-plugin sockets
+      kubeletDevicePlugins: /var/lib/kubelet/device-plugins
+      # kubeletPodResources is the location of the kubelet pod-resources socket
+      kubeletPodResources: /var/lib/kubelet/pod-resources
+      # udev is the node path of udev, usually at `/run/udev`
+      udev:
+    # allowDebugEcho dictates whether the Akri Agent will allow DebugEcho Configurations
+    allowDebugEcho: false
+    # nodeSelectors is the array of nodeSelectors used to target nodes for the Akri Agent to run on
+    # This can be set from the helm command line using `--set agent.nodeSelectors.label="value"`
+    nodeSelectors: {}
+    resources:
+      # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+      # for it to be scheduled by the Kubernetes Scheduler
+      memoryRequest: 11Mi
+      # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+      # for it to be scheduled by the Kubernetes Scheduler
+      cpuRequest: 10m
+      # memoryLimit defines the maximum amount of RAM this Pod can consume.
+      memoryLimit: 79Mi
+      # cpuLimit defines the maximum amount of CPU this Pod can consume.
+      cpuLimit: 26m
+
+  custom:
+    configuration:
+      # enabled defines whether to load a custom configuration
+      enabled: false
+      # name is the Kubernetes resource name that will be created for this
+      # custom configuration
+      name: akri-custom
+      # discoveryHandlerName is the name of the Discovery Handler the Configuration is using
+      discoveryHandlerName:
+      # brokerProperties is a map of properties that will be passed to any instances
+      # created as a result of applying this custom configuration
+      brokerProperties: {}
+      # capacity is the capacity for any instances created as a result of
+      # applying this custom configuration
+      capacity: 1
+      # discoveryDetails is the string of discovery details that is
+      # passed to a Discovery Handler which can parse it into an expected format.
+      discoveryDetails: ""
+      brokerPod:
+        image:
+          # repository is the custom broker container reference
+          repository:
+          # tag is the custom broker image tag
+          tag: latest
+          # pullPolicy is the custom pull policy
+          pullPolicy: ""
+        resources:
+          # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          memoryRequest: 11Mi
+          # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          cpuRequest: 10m
+          # memoryLimit defines the maximum amount of RAM this Pod can consume.
+          memoryLimit: 24Mi
+          # cpuLimit defines the maximum amount of CPU this Pod can consume.
+          cpuLimit: 24m
+      brokerJob:
+        # container used by custom
+        image:
+          # repository is the custom broker container reference
+          repository:
+          # tag is the custom broker image tag
+          tag: latest
+          # pullPolicy is the custom pull policy
+          pullPolicy: ""
+        # command to be executed in the Pod. An array of arguments. Can be set like:
+        # --set custom.configuration.brokerJob.command[0]="sh" \
+        # --set custom.configuration.brokerJob.command[1]="-c" \
+        # --set custom.configuration.brokerJob.command[2]="echo 'Hello World'"
+        command:
+        # restartPolicy for the Job. Can either be OnFailure or Never.
+        restartPolicy: OnFailure
+        resources:
+          # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          memoryRequest: 11Mi
+          # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          cpuRequest: 10m
+          # memoryLimit defines the maximum amount of RAM this Pod can consume.
+          memoryLimit: 24Mi
+          # cpuLimit defines the maximum amount of CPU this Pod can consume.
+          cpuLimit: 24m
+        # backoffLimit defines the Kubernetes Job backoff failure policy. More info:
+        # https://kubernetes.io/docs/concepts/workloads/controllers/job/#pod-backoff-failure-policy
+        backoffLimit: 2
+        # parallelism defines how many Pods of a Job should run in parallel. More info:
+        # https://kubernetes.io/docs/concepts/workloads/controllers/job/#parallel-jobs
+        parallelism: 1
+        # completions defines how many Pods of a Job should successfully complete. More info:
+        # https://kubernetes.io/docs/concepts/workloads/controllers/job
+        completions: 1
+      # createInstanceServices is specified if a service should automatically be
+      # created for each broker pod
+      createInstanceServices: true
+      instanceService:
+        # name is the description of the instance service
+        name: akri-custom-instance-service
+        # type is the service type of the instance service
+        type: ClusterIP
+        # port is the service port of the instance service
+        port: 6052
+        # targetPort is the service targetPort of the instance service
+        targetPort: 6052
+        # protocol is the service protocol of the instance service
+        protocol: TCP
+      # createConfigurationService is specified if a single service should automatically be
+      # created for all broker pods of a Configuration
+      createConfigurationService: true
+      configurationService:
+        # name is the description of the configuration service
+        name: akri-custom-configuration-service
+        # type is the service type of the instance service
+        type: ClusterIP
+        # port is the service port of the instance service
+        port: 6052
+        # targetPort is the service targetPort of the instance service
+        targetPort: 6052
+        # protocol is the service protocol of the instance service
+        protocol: TCP
+    # discovery defines a set of values for a custom discovery handler DaemonSet
+    discovery:
+      # enabled defines whether discovery handler pods will be deployed in a slim Agent scenario
+      enabled: false
+      # name is the Kubernetes resource name that will be created for this
+      # custom Discovery Handler DaemonSet
+      name: akri-custom-discovery
+      image:
+        # repository is the custom broker container reference
+        repository:
+        # tag is the custom broker image tag
+        tag: latest
+        # pullPolicy is the pull policy
+        pullPolicy: ""
+      # useNetworkConnection specifies whether the discovery handler should make a networked connection
+      # with Agents, using its pod IP address when registering
+      useNetworkConnection: false
+      # port specifies (when useNetworkConnection is true) the port on which the discovery handler advertises its discovery service
+      port: 10000
+      # nodeSelectors is the array of nodeSelectors used to target nodes for the discovery handler to run on
+      # This can be set from the helm command line using `--set custom.discovery.nodeSelectors.label="value"`
+      nodeSelectors: {}
+      resources:
+        # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+        # for it to be scheduled by the Kubernetes Scheduler
+        memoryRequest: 11Mi
+        # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+        # for it to be scheduled by the Kubernetes Scheduler
+        cpuRequest: 10m
+        # memoryLimit defines the maximum amount of RAM this Pod can consume.
+        memoryLimit: 24Mi
+        # cpuLimit defines the maximum amount of CPU this Pod can consume.
+        cpuLimit: 24m
+
+  debugEcho:
+    configuration:
+      # enabled defines whether to load a debugEcho configuration
+      enabled: false
+      # name is the Kubernetes resource name that will be created for this
+      # debugEcho configuration
+      name: akri-debug-echo
+      # brokerProperties is a map of properties that will be passed to any instances
+      # created as a result of applying this debugEcho configuration
+      brokerProperties: {}
+      # capacity is the capacity for any instances created as a result of
+      # applying this debugEcho configuration
+      capacity: 2
+      discoveryDetails:
+        # descriptions is the list of instances created as a result of
+        # applying this debugEcho configuration
+        descriptions:
+        - "foo0"
+        - "foo1"
+      # shared defines whether instances created as a result of
+      # applying this debugEcho configuration are shared
+      shared: true
+      brokerPod:
+        # container used by debugEcho
+        image:
+          # repository is the debugEcho broker container reference
+          repository:
+          # tag is the debugEcho broker image tag
+          tag: latest
+          # pullPolicy is the debugEcho pull policy
+          pullPolicy: ""
+        resources:
+          # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          memoryRequest: 10Mi
+          # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          cpuRequest: 10m
+          # memoryLimit defines the maximum amount of RAM this Pod can consume.
+          memoryLimit: 30Mi
+          # cpuLimit defines the maximum amount of CPU this Pod can consume.
+          cpuLimit: 29m
+      brokerJob:
+        # container used by debugEcho
+        image:
+          # repository is the debugEcho broker container reference
+          repository:
+          # tag is the debugEcho broker image tag
+          tag: latest
+          # pullPolicy is the debugEcho pull policy
+          pullPolicy: ""
+        # command to be executed in the Pod. An array of arguments. Can be set like:
+        # --set debugEcho.configuration.brokerJob.command[0]="sh" \
+        # --set debugEcho.configuration.brokerJob.command[1]="-c" \
+        # --set debugEcho.configuration.brokerJob.command[2]="echo 'Hello World'" \
+        command:
+        # restartPolicy for the Job. Can either be OnFailure or Never.
+        restartPolicy: OnFailure
+        resources:
+          # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          memoryRequest: 10Mi
+          # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          cpuRequest: 10m
+          # memoryLimit defines the maximum amount of RAM this Pod can consume.
+          memoryLimit: 30Mi
+          # cpuLimit defines the maximum amount of CPU this Pod can consume.
+          cpuLimit: 29m
+        # backoffLimit defines the Kubernetes Job backoff failure policy. More info:
+        # https://kubernetes.io/docs/concepts/workloads/controllers/job/#pod-backoff-failure-policy
+        backoffLimit: 2
+        # parallelism defines how many Pods of a Job should run in parallel. More info:
+        # https://kubernetes.io/docs/concepts/workloads/controllers/job/#parallel-jobs
+        parallelism: 1
+        # completions defines how many Pods of a Job should successfully complete. More info:
+        # https://kubernetes.io/docs/concepts/workloads/controllers/job
+        completions: 1
+      # createInstanceServices is specified if a service should automatically be
+      # created for each broker pod
+      createInstanceServices: true
+      instanceService:
+        # name is the description of the instance service
+        name: akri-debug-echo-foo-instance-service
+        # type is the service type of the instance service
+        type: ClusterIP
+        # port is the service port of the instance service
+        port: 6052
+        # targetPort is the service targetPort of the instance service
+        targetPort: 6052
+        # protocol is the service protocol of the instance service
+        protocol: TCP
+      # createConfigurationService is specified if a single service should automatically be
+      # created for all broker pods of a Configuration
+      createConfigurationService: true
+      configurationService:
+        # name is the description of the configuration service
+        name: akri-debug-echo-foo-configuration-service
+        # type is the service type of the instance service
+        type: ClusterIP
+        # port is the service port of the instance service
+        port: 6052
+        # targetPort is the service targetPort of the instance service
+        targetPort: 6052
+        # protocol is the service protocol of the instance service
+        protocol: TCP
+    # discovery defines a set of values for a debugEcho discovery handler DaemonSet
+    discovery:
+      # enabled defines whether discovery handler pods will be deployed in a slim Agent scenario
+      enabled: false
+      image:
+        # repository is the container reference
+        repository: ghcr.io/project-akri/akri/debug-echo-discovery
+        # tag is the container tag
+        # debug-echo-configuration.yaml will default to v(AppVersion)[-dev]
+        # with `-dev` added if `useDevelopmentContainers` is specified
+        tag:
+        # pullPolicy is the pull policy
+        pullPolicy: ""
+      # useNetworkConnection specifies whether the discovery handler should make a networked connection
+      # with Agents, using its pod IP address when registering
+      useNetworkConnection: false
+      # port specifies (when useNetworkConnection is true) the port on which the discovery handler advertises its discovery service
+      port: 10000
+      # nodeSelectors is the array of nodeSelectors used to target nodes for the discovery handler to run on
+      # This can be set from the helm command line using `--set debugEcho.discovery.nodeSelectors.label="value"`
+      nodeSelectors: {}
+      resources:
+        # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+        # for it to be scheduled by the Kubernetes Scheduler
+        memoryRequest: 11Mi
+        # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+        # for it to be scheduled by the Kubernetes Scheduler
+        cpuRequest: 10m
+        # memoryLimit defines the maximum amount of RAM this Pod can consume.
+        memoryLimit: 24Mi
+        # cpuLimit defines the maximum amount of CPU this Pod can consume.
+        cpuLimit: 26m
+
+  onvif:
+    configuration:
+      # enabled defines whether to load a onvif configuration
+      enabled: false
+      # name is the Kubernetes resource name that will be created for this
+      # onvif configuration
+      name: akri-onvif
+      # brokerProperties is a map of properties that will be passed to any instances
+      # created as a result of applying this onvif configuration
+      brokerProperties: {}
+      discoveryDetails:
+        ipAddresses:
+          action: Exclude
+          items: []
+        macAddresses:
+          action: Exclude
+          items: []
+        scopes:
+          action: Exclude
+          items: []
+        uuids:
+          action: Exclude
+          items: []
+        discoveryTimeoutSeconds: 1
+      # discoveryProperties is a map of properties fthat will be passed to discovery handler,
+      # the properties can be direct specified or read from Secret or ConfigMap
+      discoveryProperties:
+      # capacity is the capacity for any instances created as a result of
+      # applying this onvif configuration
+      capacity: 1
+      brokerPod:
+        image:
+          # repository is the onvif broker container reference
+          repository:
+          # tag is the onvif broker image tag
+          tag: latest
+          # pullPolicy is the Akri onvif broker pull policy
+          pullPolicy: ""
+        resources:
+          # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          memoryRequest: 98Mi
+          # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          cpuRequest: 134m
+          # memoryLimit defines the maximum amount of RAM this Pod can consume.
+          memoryLimit: 400Mi
+          # cpuLimit defines the maximum amount of CPU this Pod can consume.
+          cpuLimit: 2800m
+      brokerJob:
+        # container used by onvif
+        image:
+          # repository is the onvif broker container reference
+          repository:
+          # tag is the onvif broker image tag
+          tag: latest
+          # pullPolicy is the onvif pull policy
+          pullPolicy: ""
+        # command to be executed in the Pod. An array of arguments. Can be set like:
+        # --set onvif.configuration.brokerJob.command[0]="sh" \
+        # --set onvif.configuration.brokerJob.command[1]="-c" \
+        # --set onvif.configuration.brokerJob.command[2]="echo 'Hello World'"
+        command:
+        # restartPolicy for the Job. Can either be OnFailure or Never.
+        restartPolicy: OnFailure
+        resources:
+          # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          memoryRequest: 98Mi
+          # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          cpuRequest: 134m
+          # memoryLimit defines the maximum amount of RAM this Pod can consume.
+          memoryLimit: 400Mi
+          # cpuLimit defines the maximum amount of CPU this Pod can consume.
+          cpuLimit: 2800m
+        # backoffLimit defines the Kubernetes Job backoff failure policy. More info:
+        # https://kubernetes.io/docs/concepts/workloads/controllers/job/#pod-backoff-failure-policy
+        backoffLimit: 2
+        # parallelism defines how many Pods of a Job should run in parallel. More info:
+        # https://kubernetes.io/docs/concepts/workloads/controllers/job/#parallel-jobs
+        parallelism: 1
+        # completions defines how many Pods of a Job should successfully complete. More info:
+        # https://kubernetes.io/docs/concepts/workloads/controllers/job
+        completions: 1
+      # createInstanceServices is specified if a service should automatically be
+      # created for each broker pod
+      createInstanceServices: true
+      instanceService:
+        # name is the description of the instance service
+        name: akri-onvif-instance-service
+        # type is the service type of the instance service
+        type: ClusterIP
+        # portName is the name of the port
+        portName: grpc
+        # port is the service port of the instance service
+        port: 80
+        # targetPort is the service targetPort of the instance service
+        targetPort: 8083
+        # protocol is the service protocol of the instance service
+        protocol: TCP
+      # createConfigurationService is specified if a single service should automatically be
+      # created for all broker pods of a Configuration
+      createConfigurationService: true
+      configurationService:
+        # name is the description of the configuration service
+        name: akri-onvif-configuration-service
+        # type is the service type of the instance service
+        type: ClusterIP
+        # portName is the name of the port
+        portName: grpc
+        # port is the service port of the instance service
+        port: 80
+        # targetPort is the service targetPort of the instance service
+        targetPort: 8083
+        # protocol is the service protocol of the instance service
+        protocol: TCP
+      # discovery defines a set of values for a onvif discovery handler DaemonSet
+    discovery:
+      # enabled defines whether discovery handler pods will be deployed in a slim Agent scenario
+      enabled: false
+      image:
+        # repository is the container reference
+        repository: ghcr.io/project-akri/akri/onvif-discovery
+        # tag is the container tag
+        # onvif-configuration.yaml will default to v(AppVersion)[-dev]
+        # with `-dev` added if `useDevelopmentContainers` is specified
+        tag:
+        # pullPolicy is the pull policy
+        pullPolicy: ""
+      # useNetworkConnection specifies whether the discovery handler should make a networked connection
+      # with Agents, using its pod IP address when registering
+      useNetworkConnection: false
+      # port specifies (when useNetworkConnection is true) the port on which the discovery handler advertises its discovery service
+      port: 10000
+      # nodeSelectors is the array of nodeSelectors used to target nodes for the discovery handler to run on
+      # This can be set from the helm command line using `--set onvif.discovery.nodeSelectors.label="value"`
+      nodeSelectors: {}
+      resources:
+        # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+        # for it to be scheduled by the Kubernetes Scheduler
+        memoryRequest: 11Mi
+        # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+        # for it to be scheduled by the Kubernetes Scheduler
+        cpuRequest: 10m
+        # memoryLimit defines the maximum amount of RAM this Pod can consume.
+        memoryLimit: 24Mi
+        # cpuLimit defines the maximum amount of CPU this Pod can consume.
+        cpuLimit: 24m
+
+  opcua:
+    configuration:
+      # enabled defines whether to load an OPC UA configuration
+      enabled: false
+      # name is the Kubernetes resource name that will be created for this
+      # OPC UA configuration
+      name: akri-opcua
+      # brokerProperties is a map of properties that will be passed to any instances
+      # created as a result of applying this OPC UA configuration
+      brokerProperties: {}
+      discoveryDetails:
+        # discoveryUrls is a list of DiscoveryUrls for OPC UA servers
+        discoveryUrls:
+        - "opc.tcp://localhost:4840/"
+        # applicationNames is a filter applied to the discovered OPC UA servers to either exclusively
+        # include or exclude servers with application names in the applicationNames list.
+        applicationNames:
+          action: Exclude
+          items: []
+      # mountCertificates determines whether to mount into the broker pods k8s Secrets
+      # containing OPC UA client credentials for connecting to OPC UA severs with the
+      # same signing certificate authority.
+      # If set to false, the brokers will attempt to make an insecure connection with the servers.
+      mountCertificates: false
+      # capacity is the capacity for any instances created as a result of
+      # applying this OPC UA configuration
+      capacity: 1
+      brokerPod:
+        image:
+          # repository is the OPC UA broker container reference
+          repository:
+          # tag is the OPC UA broker image tag
+          tag: latest
+          # pullPolicy is the OPC UA broker pull policy
+          pullPolicy: ""
+        resources:
+          # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          memoryRequest: 76Mi
+          # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          cpuRequest: 9m
+          # memoryLimit defines the maximum amount of RAM this Pod can consume.
+          memoryLimit: 200Mi
+          # cpuLimit defines the maximum amount of CPU this Pod can consume.
+          cpuLimit: 30m
+      brokerJob:
+        # container used by opcua
+        image:
+          # repository is the opcua broker container reference
+          repository:
+          # tag is the opcua broker image tag
+          tag: latest
+          # pullPolicy is the opcua pull policy
+          pullPolicy: ""
+        # command to be executed in the Pod. An array of arguments. Can be set like:
+        # --set opcua.configuration.brokerJob.command[0]="sh" \
+        # --set opcua.configuration.brokerJob.command[1]="-c" \
+        # --set opcua.configuration.brokerJob.command[2]="echo 'Hello World'"
+        command:
+        # restartPolicy for the Job. Can either be OnFailure or Never.
+        restartPolicy: OnFailure
+        resources:
+          # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          memoryRequest: 76Mi
+          # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          cpuRequest: 9m
+          # memoryLimit defines the maximum amount of RAM this Pod can consume.
+          memoryLimit: 200Mi
+          # cpuLimit defines the maximum amount of CPU this Pod can consume.
+          cpuLimit: 30m
+        # backoffLimit defines the Kubernetes Job backoff failure policy. More info:
+        # https://kubernetes.io/docs/concepts/workloads/controllers/job/#pod-backoff-failure-policy
+        backoffLimit: 2
+        # parallelism defines how many Pods of a Job should run in parallel. More info:
+        # https://kubernetes.io/docs/concepts/workloads/controllers/job/#parallel-jobs
+        parallelism: 1
+        # completions defines how many Pods of a Job should successfully complete. More info:
+        # https://kubernetes.io/docs/concepts/workloads/controllers/job
+        completions: 1
+      # createInstanceServices is specified if a service should automatically be
+      # created for each broker pod
+      createInstanceServices: true
+      instanceService:
+        # name is the description of the instance service
+        name: akri-opcua-instance-service
+        # type is the service type of the instance service
+        type: ClusterIP
+        # port is the service port of the instance service
+        port: 80
+        # targetPort is the service targetPort of the instance service
+        targetPort: 8083
+        # protocol is the service protocol of the instance service
+        protocol: TCP
+      # createConfigurationService is specified if a single service should automatically be
+      # created for all broker pods of a Configuration
+      createConfigurationService: true
+      configurationService:
+        # name is the description of the configuration service
+        name: akri-opcua-configuration-service
+        # type is the service type of the instance service
+        type: ClusterIP
+        # port is the service port of the instance service
+        port: 80
+        # targetPort is the service targetPort of the instance service
+        targetPort: 8083
+        # protocol is the service protocol of the instance service
+        protocol: TCP
+    # discovery defines a set of values for a opcua discovery handler DaemonSet
+    discovery:
+      # enabled defines whether discovery handler pods will be deployed in a slim Agent scenario
+      enabled: false
+      image:
+        # repository is the container reference
+        repository: ghcr.io/project-akri/akri/opcua-discovery
+        # tag is the container tag
+        # opcua-configuration.yaml will default to v(AppVersion)[-dev]
+        # with `-dev` added if `useDevelopmentContainers` is specified
+        tag:
+        # pullPolicy is the pull policy
+        pullPolicy: ""
+      # useNetworkConnection specifies whether the discovery handler should make a networked connection
+      # with Agents, using its pod IP address when registering
+      useNetworkConnection: false
+      # port specifies (when useNetworkConnection is true) the port on which the discovery handler advertises its discovery service
+      port: 10000
+      # nodeSelectors is the array of nodeSelectors used to target nodes for the discovery handler to run on
+      # This can be set from the helm command line using `--set opcua.discovery.nodeSelectors.label="value"`
+      nodeSelectors: {}
+      resources:
+        # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+        # for it to be scheduled by the Kubernetes Scheduler
+        memoryRequest: 11Mi
+        # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+        # for it to be scheduled by the Kubernetes Scheduler
+        cpuRequest: 10m
+        # memoryLimit defines the maximum amount of RAM this Pod can consume.
+        memoryLimit: 24Mi
+        # cpuLimit defines the maximum amount of CPU this Pod can consume.
+        cpuLimit: 24m
+
+  udev:
+    configuration:
+      # enabled defines whether to load a udev configuration
+      enabled: false
+      # name is the Kubernetes resource name that will be created for this
+      # udev configuration
+      name: akri-udev
+      # brokerProperties is a map of properties that will be passed to any instances
+      # created as a result of applying this udev configuration
+      brokerProperties: {}
+      discoveryDetails:
+        # groupRecursive defines whether to group discovered parent/children under the same instance
+        groupRecursive: false
+        # udevRules is the list of udev rules used to find instances created as a result of
+        # applying this udev configuration
+        udevRules:
+      # capacity is the capacity for any instances created as a result of
+      # applying this udev configuration
+      capacity: 1
+      brokerPod:
+        image:
+          # repository is the udev broker container reference
+          repository:
+          # tag is the udev broker image tag
+          tag: latest
+          # pullPolicy is the udev broker pull policy
+          pullPolicy: ""
+        resources:
+          # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          memoryRequest: 10Mi
+          # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          cpuRequest: 10m
+          # memoryLimit defines the maximum amount of RAM this Pod can consume.
+          memoryLimit: 30Mi
+          # cpuLimit defines the maximum amount of CPU this Pod can consume.
+          cpuLimit: 29m
+        securityContext: {}
+      brokerJob:
+        # container used by udev
+        image:
+          # repository is the udev broker container reference
+          repository:
+          # tag is the udev broker image tag
+          tag: latest
+          # pullPolicy is the udev pull policy
+          pullPolicy: ""
+        # command to be executed in the Pod. An array of arguments. Can be set like:
+        # --set udev.configuration.brokerJob.command[0]="sh" \
+        # --set udev.configuration.brokerJob.command[1]="-c" \
+        # --set udev.configuration.brokerJob.command[2]="echo 'Hello World'"
+        command:
+        # restartPolicy for the Job. Can either be OnFailure or Never.
+        restartPolicy: OnFailure
+        resources:
+          # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          memoryRequest: 10Mi
+          # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+          # for it to be scheduled by the Kubernetes Scheduler
+          cpuRequest: 10m
+          # memoryLimit defines the maximum amount of RAM this Pod can consume.
+          memoryLimit: 30Mi
+          # cpuLimit defines the maximum amount of CPU this Pod can consume.
+          cpuLimit: 29m
+        # backoffLimit defines the Kubernetes Job backoff failure policy. More info:
+        # https://kubernetes.io/docs/concepts/workloads/controllers/job/#pod-backoff-failure-policy
+        backoffLimit: 2
+        # parallelism defines how many Pods of a Job should run in parallel. More info:
+        # https://kubernetes.io/docs/concepts/workloads/controllers/job/#parallel-jobs
+        parallelism: 1
+        # completions defines how many Pods of a Job should successfully complete. More info:
+        # https://kubernetes.io/docs/concepts/workloads/controllers/job
+        completions: 1
+      # createInstanceServices is specified if a service should automatically be
+      # created for each broker pod
+      createInstanceServices: true
+      instanceService:
+        # portName is the name of the port
+        portName: grpc
+        # type is the service type of the instance service
+        type: ClusterIP
+        # port is the service port of the instance service
+        port: 80
+        # targetPort is the service targetPort of the instance service
+        targetPort: 8083
+        # protocol is the service protocol of the instance service
+        protocol: TCP
+      # createConfigurationService is specified if a single service should automatically be
+      # created for all broker pods of a Configuration
+      createConfigurationService: true
+      configurationService:
+        # portName is the name of the port
+        portName: grpc
+        # type is the service type of the instance service
+        type: ClusterIP
+        # port is the service port of the instance service
+        port: 80
+        # targetPort is the service targetPort of the instance service
+        targetPort: 8083
+        # protocol is the service protocol of the instance service
+        protocol: TCP
+    # discovery defines a set of values for a udev discovery handler DaemonSet
+    discovery:
+      # enabled defines whether discovery handler pods will be deployed in a slim Agent scenario
+      enabled: false
+      image:
+        # repository is the container reference
+        repository: ghcr.io/project-akri/akri/udev-discovery
+        # tag is the container tag
+        # udev-configuration.yaml will default to v(AppVersion)[-dev]
+        # with `-dev` added if `useDevelopmentContainers` is specified
+        tag:
+        # pullPolicy is the pull policy
+        pullPolicy: ""
+      # useNetworkConnection specifies whether the discovery handler should make a networked connection
+      # with Agents, using its pod IP address when registering
+      useNetworkConnection: false
+      # port specifies (when useNetworkConnection is true) the port on which the discovery handler advertises its discovery service
+      port: 10000
+      # nodeSelectors is the array of nodeSelectors used to target nodes for the discovery handler to run on
+      # This can be set from the helm command line using `--set udev.discovery.nodeSelectors.label="value"`
+      nodeSelectors: {}
+      host:
+        # udev is the node path of udev, usually at `/run/udev`
+        udev: /run/udev
+      resources:
+        # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+        # for it to be scheduled by the Kubernetes Scheduler
+        memoryRequest: 11Mi
+        # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+        # for it to be scheduled by the Kubernetes Scheduler
+        cpuRequest: 10m
+        # memoryLimit defines the maximum amount of RAM this Pod can consume.
+        memoryLimit: 24Mi
+        # cpuLimit defines the maximum amount of CPU this Pod can consume.
+        cpuLimit: 24m
+
+  # Admission Controllers (Webhooks)
+  webhookConfiguration:
+    # enabled defines whether to apply the Akri Admission Controller (Webhook) for Akri Configurations
+    enabled: true
+    # name of the webhook
+    name: akri-webhook-configuration
+    # base64-encoded CA certificate (PEM) used by Kubernetes to validate the Webhook's certificate, if
+    # unset, will generate a self-signed certificate valid for 100y
+    caBundle: null
+    image:
+      # repository is the Akri Webhook for Configurations image reference
+      repository: ghcr.io/project-akri/akri/webhook-configuration
+      # tag is the container tag
+      # webhook-configuration.yaml will default to v(AppVersion)[-dev]
+      # with `-dev` added if `useDevelopmentContainers` is specified
+      tag:
+      # pullPolicy is the Akri Webhook pull policy
+      pullPolicy: Always
+    certImage:
+      # reference is the webhook-certgen image reference
+      reference: registry.k8s.io/ingress-nginx/kube-webhook-certgen
+      # tag is the webhook-certgen image tag
+      tag: v1.1.1
+      # pullPolicy is the webhook-certgen pull policy
+      pullPolicy: IfNotPresent
+    # onlyOnControlPlane dictates whether the Akri Webhook will only run on nodes with
+    # the label with (key, value) of ("node-role.kubernetes.io/master", "")
+    onlyOnControlPlane: false
+    # allowOnControlPlane dictates whether a toleration will be added to allow to Akri Webhook
+    # to run on the control plane node
+    allowOnControlPlane: true
+    # nodeSelectors is the array of nodeSelectors used to target nodes for the Akri Webhook to run on
+    # This can be set from the helm command line using `--set webhookConfiguration.nodeSelectors.label="value"`
+    nodeSelectors: {}
+    resources:
+      # memoryRequest defines the minimum amount of RAM that must be available to this Pod
+      # for it to be scheduled by the Kubernetes Scheduler
+      memoryRequest: 100Mi
+      # cpuRequest defines the minimum amount of CPU that must be available to this Pod
+      # for it to be scheduled by the Kubernetes Scheduler
+      cpuRequest: 15m
+      # memoryLimit defines the maximum amount of RAM this Pod can consume.
+      memoryLimit: 100Mi
+      # cpuLimit defines the maximum amount of CPU this Pod can consume.
+      cpuLimit: 26m
+  ```
+</details>  
+
+For me, I will change some values, so my installation looks like this:
+```shell
+helm install akri akri-helm-charts/akri \
+  --set useLatestContainers=true \
+  --set-string agent.nodeSelectors.worker="true" # we need to use --set-string here to make "true" (a boolean value) work as a string and
+```
+
+After the installation akri will report this message:
+```shell
+NAME: akri
+LAST DEPLOYED: Thu Jan  2 19:22:45 2025
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+1. Get the Akri Controller:
+  kubectl get -o wide pods | grep controller
+2. Get the Akri Agent(s):
+  kubectl get -o wide pods | grep agent
+3. Get the Akri Configuration(s):
+  kubectl get -o wide akric
+```
+Executing the above commands returns some details about the deployment:
+```shell
+ubuntu@rke2-admin:~$ kubectl get -o wide pods | grep controller
+akri-controller-deployment-5c55cdd68d-mtr85   1/1     Running   0          106s   10.42.3.224   rke2-04   <none>           <none>
+ubuntu@rke2-admin:~$ kubectl get -o wide pods | grep agent
+akri-agent-daemonset-7vtq5                    1/1     Running   0          112s   10.42.4.213   rke2-05   <none>           <none>
+akri-agent-daemonset-tsk94                    1/1     Running   0          112s   10.42.3.223   rke2-04   <none>           <none>
+ubuntu@rke2-admin:~$ kubectl get -o wide akric
+No resources found in default namespace.
+```
