@@ -27,11 +27,6 @@ app:
   # NOTE: When set, 'configStorage' and 'storageClassName' are ignored.
   configExistingClaim: ""
 
-  # Enabling this will add gpu.intel.com/i915: 1 to limits and requests
-  gpu:
-    intel:
-      enabled: false
-
   resources: {}
   # resources:
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -42,10 +37,12 @@ app:
     #   cpu: 100m
     #   memory: 128Mi
     #   akri.sh/akri-dvddrive: "1"
+    #   gpu.intel.com/i915: 1
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
-    #   akri.sh/akri-dvddrive: "1"      
+    #   akri.sh/akri-dvddrive: "1"     
+    #   gpu.intel.com/i915: 1 
 
   port: <PORT>
 

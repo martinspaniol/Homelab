@@ -112,15 +112,9 @@ spec:
           {{- with .limits }}
             {{ toYaml . | indent 12 | trim }}
           {{- end }}
-          {{- if and $.Values.app.gpu.intel.enabled (not (hasKey .limits "gpu.intel.com/i915")) }}
-            gpu.intel.com/i915: 1
-          {{- end }}
+          {{- if .requests }}
           requests:
-          {{- with .requests }}
             {{ toYaml .requests | indent 12 | trim }}
-          {{- end }}
-          {{- if and $.Values.app.gpu.intel.enabled (not (hasKey .requests "gpu.intel.com/i915")) }}
-            gpu.intel.com/i915: 1
           {{- end }}
         {{- end }}
         volumeMounts:
