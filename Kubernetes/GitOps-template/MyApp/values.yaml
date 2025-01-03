@@ -27,7 +27,7 @@ app:
   # NOTE: When set, 'configStorage' and 'storageClassName' are ignored.
   configExistingClaim: ""
 
-  # Enabling this will add gpu.intel.com/i915: "1" to limits and requests
+  # Enabling this will add gpu.intel.com/i915: 1 to limits and requests
   gpu:
     intel:
       enabled: false
