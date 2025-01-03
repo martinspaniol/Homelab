@@ -21,5 +21,5 @@ spec:
           port: 32400
       middlewares:
         - name: default-headers
-  tls:
-    secretName: unserneuesheim-tls # change to your cert
+  # tls:
+  #   secretName: unserneuesheim-tls # change to your cert
