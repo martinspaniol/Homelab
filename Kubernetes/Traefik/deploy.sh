@@ -59,8 +59,8 @@ fi
 
 # Step 2: Add Helm Repos
 helm repo add traefik https://helm.traefik.io/traefik
-helm repo add emberstack https://emberstack.github.io/helm-charts # required to share certs for CrowdSec
-helm repo add crowdsec https://crowdsecurity.github.io/helm-charts
+#helm repo add emberstack https://emberstack.github.io/helm-charts # required to share certs for CrowdSec
+#helm repo add crowdsec https://crowdsecurity.github.io/helm-charts
 helm repo update
 
 # Step 3: Create Traefik namespace
