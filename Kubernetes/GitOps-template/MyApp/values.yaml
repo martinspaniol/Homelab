@@ -1,0 +1,256 @@
+# The docker image information for the application
+image:
+  registry: index.docker.io
+  repository: <REPOSITORY>
+  # If unset use "latest"
+  tag: "latest"
+  sha: ""
+  pullPolicy: IfNotPresent
+
+global:
+  # Allow parent charts to override registry hostname
+  imageRegistry: ""
+
+ingress:
+  # Specify if an ingress resource should be created or not
+  enabled: true
+
+app:
+  # The storage class to use when provisioning the app config volume
+  # this needs to be created manually, null will use the default
+  storageClassName: longhorn
+
+  # the volume size to provision for the app database
+  configStorage: <STORAGE>
+
+  # Name of an existing `PersistentVolumeClaim` for the app database
+  # NOTE: When set, 'configStorage' and 'storageClassName' are ignored.
+  configExistingClaim: ""
+
+  # Enabling this will add gpu.intel.com/i915: "1" to limits and requests
+  gpu:
+    intel:
+      enabled: false
+
+  resources: {}
+  # resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    #   akri.sh/akri-dvddrive: "1"
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+    #   akri.sh/akri-dvddrive: "1"      
+
+  port: <PORT>
+
+# A basic image that will convert the configmap to a file in the rclone config volume
+# this is ignored if rclone is not enabled
+initContainer:
+  image:
+    registry: index.docker.io
+    repository: alpine
+    # If unset use latest
+    tag: 3.18.0
+    sha: ""
+    pullPolicy: IfNotPresent
+
+  # A custom script that will be run in an init container to do any setup before the app service starts up
+  # This will be run everytime the pod starts, make sure that some mechanism is included to prevent
+  # this from running more than once if it should only be run on the first startup.
+  script: ""
+  ###
+  ### Example init script that will import a pre-existing app database if one has not already been setup
+  ### This app database must be available through a URL (or some other mechanism to be pulled into the container)
+  # script: |-
+    #!/bin/sh
+    
+    # # Source and destination directories
+    # SOURCE_DIR="/profiles"
+    # DEST_DIR="/config/data"
+
+    # mkdir -p "$DEST_DIR"
+
+    # # Copy *.mmcp.xml files from source to destination
+    # echo "Syncing *.mmcp.xml files from $SOURCE_DIR to $DEST_DIR..."
+
+    # # Copy or update files from SOURCE_DIR to DEST_DIR
+    # for file in "$SOURCE_DIR"/*.mmcp.xml; do
+    #     if [ -f "$file" ]; then
+    #         cp -f "$file" "$DEST_DIR"
+    #         echo "Copied: $(basename "$file")"
+    #     fi
+    # done
+
+    # # Remove files in DEST_DIR that no longer exist in SOURCE_DIR
+    # for file in "$DEST_DIR"/*.mmcp.xml; do
+    #     base_file=$(basename "$file")
+    #     if [ ! -f "$SOURCE_DIR/$base_file" ]; then
+    #         rm -f "$file"
+    #         echo "Deleted: $base_file"
+    #     fi
+    # done
+
+    # echo "Profile sync completed."
+
+    # # Source and destination directories
+    # SOURCE_DIR="/settings"
+    # DEST_DIR="/config"
+
+    # # Copy *settings.conf from source to destination
+    # echo "Syncing settings.conf from $SOURCE_DIR to $DEST_DIR..."
+
+    # # Copy or update files from SOURCE_DIR to DEST_DIR
+    # for file in "$SOURCE_DIR"/settings.conf; do
+    #     if [ -f "$file" ]; then
+    #         cp -f "$file" "$DEST_DIR"
+    #         echo "Copied: $(basename "$file")"
+    #     fi
+    # done
+
+    # echo "Settings sync completed."
+
+
+# specify your own runtime class name eg use gpu
+runtimeClassName: ""
+
+# the settings specific to rclone
+rclone:
+  # if the rclone sidecar should be created
+  enabled: false
+
+  # the rclone image that should be used
+  image:
+    registry: index.docker.io
+    repository: rclone/rclone
+    # If unset use latest
+    tag: "latest"
+    sha: ""
+    pullPolicy: IfNotPresent
+
+  # The name of the secret that contains the rclone configuration file.
+  # The rclone config key must be called `rclone.conf` in the secret
+  #
+  # All keys in configSecret will be available in /etc/rclone/. This might
+  # be useful if other files are needed, such as a private key for sftp mode.
+  configSecret: "rclone-config"
+
+  # the remote drive that should be mounted using rclone
+  # this must be in the form of `name:[/optional/path]`
+  # this remote will be mounted at `/data/name` in the app container
+  remotes:
+    - "diskstation-media:/media/makemkv/output"
+
+  # if the remote volumes should be mounted as read only
+  readOnly: false
+
+  # additional arguments to give to rclone when mounting the volume
+  # additionalArgs: []
+  additionalArgs:
+    - --vfs-cache-mode=writes
+
+  resources: {}
+  # resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # If the service account token should be auto mounted
+  automountServiceAccountToken: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+statefulSet:
+  # optional extra annotations to add to the service resource
+  annotations: {}
+  # optional extra annotations to add to the pods in the statefulset
+  podAnnotations: {}
+
+service:
+  type: ClusterIP
+  port: 80
+  name: http
+
+  # Port to use when type of service is "NodePort" (80 by default)
+  # nodePort: 80
+
+  # when NodePort is used, your app is unable to determine user IP
+  # all traffic seems to come from within the cluster
+  # setting this to 'Local' will allow your app to determine the actual IP of user.
+  # used to determine bitrate for remote transcoding
+  # but the pods can only be accessed by the Node IP where the pod is running
+  # Read more here: https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
+  # https://access.redhat.com/solutions/7028639
+  # externalTrafficPolicy: Local
+
+  # optional extra annotations to add to the service resource
+  annotations: {}
+
+nodeSelector:
+  worker: "true"
+
+tolerations: []
+
+affinity: {}
+
+priorityClassName: ""
+
+# Common Labels for all resources created by this chart.
+commonLabels: {}
+
+extraEnv: {}
+# extraEnv:
+#   CLEAN_TMP_DIR: 1
+   
+
+# Optionally specify additional volume mounts for the app and init containers.
+extraVolumeMounts: []
+# extraVolumeMounts:
+#   - name: filebot-license-data
+#     mountPath: /mnt/filebot-license-data
+
+# Optionally specify additional volumes for the pod.
+extraVolumes: []
+# extraVolumes:
+#   - name: app-backup
+#     hostPath:
+#       path: /mnt/app-backup
+#       type: Directory
+
+extraContainers: []
+# extraContainers:
+#  - name: <container name>
+#    args:
+#      - ...
+#    image: <docker images>
+#    imagePullPolicy: IfNotPresent
+#    resources:
+#      limits:
+#        memory: 128Mi
+#      requests:
+#        cpu: 100m
+#        memory: 128Mi
+#    volumeMounts:
+#      - ...
