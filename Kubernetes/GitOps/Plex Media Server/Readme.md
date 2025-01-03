@@ -4,12 +4,16 @@ This guide will give you step by step instructions on how to setup a Plex Person
 Since I have an existing plex instance running on Docker I will also take care of migrating this instance to RKE2.
 
 # Prerequisites
+
 I assume you fullfill these prerequesites:
+
 * RKE2 is already setup and running
 * You're using traefik and it's setup and running as well
 
 # Instructions
+
 ## rclone config
+
 1. Install the latest version of rclone
 `sudo -v ; curl https://rclone.org/install.sh | sudo bash`
 
@@ -42,7 +46,8 @@ rclone configurations will be stored in `~/.config/rclone/rclone.conf`.
 14. Quit the configuration mode with `q`.
 
     Your generated rclone configuration file should look like this:  
-    ```
+
+    ```ini
     [diskstation-media]
     type = smb
     host = diskstation.fritz.box
@@ -53,7 +58,6 @@ rclone configurations will be stored in `~/.config/rclone/rclone.conf`.
 15. The rclone configuration must be stored as a secret in Kubernetes. To do so create a `rclone-config.yaml` file in the templates directory with the following content:
 
     ```yaml
-    ---
     apiVersion: v1
     kind: Secret
     metadata:
@@ -68,7 +72,7 @@ rclone configurations will be stored in `~/.config/rclone/rclone.conf`.
         pass = hobcz9hmjUob02z2YVPEX6iGg8Gswa-kejsdM0pO-7DVU3QKZWFeKhtjLK_ANwmn
     ```
 
-16. Adjust the rclone-configuration in the `values.yaml` file: 
+16. Adjust the rclone-configuration in the `values.yaml` file:
 
     ```yaml
     rclone:
@@ -82,6 +86,7 @@ rclone configurations will be stored in `~/.config/rclone/rclone.conf`.
     ```
 
 ## Migrate an existing plex installation (optional)
+
 If you have an existing plex installation and you want to migrate the configuration you need to follow these steps.
 
 > Note: These instructions are initially posted from the plex team [here](https://www.plex.tv/blog/plex-pro-week-23-a-z-on-k8s-for-plex-media-server/).  
@@ -101,9 +106,10 @@ So ssh into your NAS, become root, switch to the above directory and create a ta
     sudo mkdir /mnt/pms-backup
     sudo mount -t cifs //<IP OF YOUR NAS>/<SOME DIRECTORY> /mnt/pms-backup -o username=plex, password="<YOUR PASSWORD HERE>"
     ```
+
     > Note that this is just a temporary mount. We will unmount this after the migration is complete.
 
-5. Adjust the following lines in the `values.yaml` file: 
+5. Adjust the following lines in the `values.yaml` file:
 
     ```yaml
     initContainer:
@@ -150,11 +156,12 @@ So ssh into your NAS, become root, switch to the above directory and create a ta
         hostPath:
           path: /mnt/pms-backup
           type: Directory
-    ``` 
+    ```
+
    The _extraVolumeMounts_ variable specifies that we want to mount the directory to our init and pms container (although the init container would be sufficient). With _extraVolumes_ we create the necessary mount points for that. Finally if there is not already an existing plex library, the script will extract the _pms.tar_ file from the location you provided to _/config/Library/Application Support/Plex Media Server_.
 
 6. Check the size of your current plex database. Depending on the size of your media library this database can easily grow up to a few hundred Gigabytes! Adjust the name and the size of the pvc in `values.yaml` file:
-    
+
     ```yaml
     pms:
       # The storage class to use when provisioning the pms config volume
@@ -280,7 +287,7 @@ You should be able to login to your plex instance, still we need to adjust some 
 
     In plex go to _Settings > Libraries_ and for each library (i.e. movies, tv shows, etc.) **add**     the path to the location where to find the files. **Do not remove the old path yet!** Since we     chose `diskstation-media:/media` in the rclone-configuration, our media files are mounted to `/    data/diskstation-media` inside the pms instance.  
     Let plex scan the path you've added, this will happen automatically. Plex should recognize each     file and associate the new path to it. This may take some minutes to complete.  
-    After the scan has finished edit again your libraries and remove the old path from each. Plex     will again scan the path but this will just take a few seconds. 
+    After the scan has finished edit again your libraries and remove the old path from each. Plex     will again scan the path but this will just take a few seconds.
 
 2. Change the friendly name of your plex server if you want to. Go to _Settings > General_ and choose a friendly name.
 
@@ -301,12 +308,14 @@ service:
   spec:
     externalTrafficPolicy: Local # Preserve the client IP
 ```
+
 Save this change to `~/Helm/Traefik/values.yaml` on your rke2-admin VM and apply it by executing the following command:  
 `helm upgrade --namespace=traefik traefik traefik/traefik -f ~/Helm/Traefik/values.yaml`
 
 You can check if that worked with that command:  
 `kubectl describe svc traefik -n traefik`
 The result should be this:  
+
 ```yaml
 Name:                     traefik
 Namespace:                traefik
@@ -347,9 +356,9 @@ Now you can try to watch some media from an external connection again. Plex shou
 
 ## Cleanup after deployment
 
-If you've migrated from an old plex instance, we need to clean up a few things after the first startup and configuration of plex. 
+If you've migrated from an old plex instance, we need to clean up a few things after the first startup and configuration of plex.
 
-1. To remove the mount for the old plex library adjust your `values.yaml` file and comment out the `extraVolumeMounts` and `extraVolumes`. 
+1. To remove the mount for the old plex library adjust your `values.yaml` file and comment out the `extraVolumeMounts` and `extraVolumes`.
 
     ```yaml
     # Optionally specify additional volume mounts for the PMS and init containers.
