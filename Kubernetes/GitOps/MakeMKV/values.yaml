@@ -229,8 +229,8 @@ extraEnv:
   AUTO_DISC_RIPPER: 1
   AUTO_DISC_RIPPER_EJECT: 1
   AUTO_DISC_RIPPER_BD_MODE: mkv #mkv, backup
-  AUTO_DISC_RIPPER_MIN_TITLE_LENGTH: 900 # 15min for TV shows
-  # AUTO_DISC_RIPPER_MIN_TITLE_LENGTH: 3600 # 1h for movies
+  # AUTO_DISC_RIPPER_MIN_TITLE_LENGTH: 900 # 15min for TV shows
+  AUTO_DISC_RIPPER_MIN_TITLE_LENGTH: 3600 # 1h for movies
   AUTO_DISC_RIPPER_FORCE_UNIQUE_OUTPUT_DIR: 1
   KEEP_APP_RUNNING: 1
   # MAKEMKV_KEY: UNSET # prevents writing new beta key to settings.conf. see https://github.com/jlesage/docker-makemkv?tab=readme-ov-file#expired-beta-key - key here: https://forum.makemkv.com/forum/viewtopic.php?f=5&t=1053
