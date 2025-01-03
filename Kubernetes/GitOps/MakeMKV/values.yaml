@@ -237,31 +237,31 @@ extraEnv:
     
 
 # Optionally specify additional volume mounts for the app and init containers.
-# extraVolumeMounts: []
+extraVolumeMounts: []
 # extraVolumeMounts:
 #   - name: filebot-license-data
 #     mountPath: /mnt/filebot-license-data
-extraVolumeMounts:
-  - name: usb-drive-sr1
-    mountPath: /dev/sr1
-  - name: usb-drive-sg2
-    mountPath: /dev/sg2
+# extraVolumeMounts:
+#   - name: usb-drive-sr1
+#     mountPath: /dev/sr1
+#   - name: usb-drive-sg2
+#     mountPath: /dev/sg2
 
 
 # Optionally specify additional volumes for the pod.
-# extraVolumes: []
+extraVolumes: []
 # extraVolumes:
 #   - name: app-backup
 #     hostPath:
 #       path: /mnt/app-backup
 #       type: Directory
-extraVolumes:
-  - name: usb-drive-sr1
-    hostPath:
-      path: /dev/sr1
-  - name: usb-drive-sg2
-    hostPath:
-      path: /dev/sg2
+# extraVolumes:
+#   - name: usb-drive-sr1
+#     hostPath:
+#       path: /dev/sr1
+#   - name: usb-drive-sg2
+#     hostPath:
+#       path: /dev/sg2
 
 extraContainers: []
 # extraContainers:
