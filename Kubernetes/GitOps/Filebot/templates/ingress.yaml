@@ -2,29 +2,27 @@
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: {{ include "chart.fullname" . }}
+  name: {{ include "app-chart.fullname" . }}
   labels:
-    {{- include "chart.labels" . | nindent 4 }}
+    {{- include "app-chart.labels" . | nindent 4 }}
   annotations:
     kubernetes.io/ingress.class: traefik-external
 spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`{{ include "chart.fullname" . }}.unserneuesheim.de`)
+    - match: Host(`{{ include "app-chart.fullname" . }}.unserneuesheim.de`)
       kind: Rule
       services:
-        - name: {{ include "chart.fullname" . }}
+        - name: {{ include "app-chart.fullname" . }}
           port: {{ .Values.service.port }}
       middlewares:
         - name: default-headers
-    - match: Host(`www.{{ include "chart.fullname" . }}.unserneuesheim.de`)
+    - match: Host(`www.{{ include "app-chart.fullname" . }}.unserneuesheim.de`)
       kind: Rule
       services:
-        - name: {{ include "chart.fullname" . }}
+        - name: {{ include "app-chart.fullname" . }}
           port: {{ .Values.service.port }}
       middlewares:
         - name: default-headers
-  # tls:
-  #   secretName: unserneuesheim-tls # change to your cert
 {{- end }}

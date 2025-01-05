@@ -34,6 +34,10 @@ app:
     intel:
       enabled: false
 
+  # Enabling this will add akri.sh/akri-dvddrive: "1" to limits and requests
+  dvddrive:
+    enabled: false
+
   resources: {}
   # resources:
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -70,7 +74,7 @@ initContainer:
   script: |-
     #!/bin/sh
     
-    # this moves the license file from /mnt/filebot-license-data/license.psm to /config/license.psm only if ith's not already there
+    # this moves the license file from /mnt/filebot-license-data/license.psm to /config/license.psm only if it's not already there
 
     echo "Checking if license file exists..."
     if [ -f "/config/license.psm" ]; then
@@ -115,19 +119,14 @@ rclone:
   # be useful if other files are needed, such as a private key for sftp mode.
   configSecret: "rclone-config"
 
-  # the remote drive that should be mounted using rclone
-  # this must be in the form of `name:[/optional/path]`
-  # this remote will be mounted at `/data/name` in the app container
+  # the remote drives that should be mounted using rclone
   remotes:
-    - "diskstation-media:/media"
-
-  # if the remote volumes should be mounted as read only
-  readOnly: false
-
-  # additional arguments to give to rclone when mounting the volume
-  # additionalArgs: []
-  additionalArgs:
-    - --vfs-cache-mode=writes
+    - name: "diskstation-media"
+      remotePath: "/media"
+      mountPath: "/output"
+      readOnly: false
+      additionalArgs:
+        - --vfs-cache-mode=writes
 
   resources: {}
   # resources:
@@ -199,10 +198,6 @@ commonLabels: {}
 
 # extraEnv: {}
 extraEnv:
-  # USER_ID: ${PUID}
-  # GROUP_ID: ${PGID}
-  # TZ: ${TZ}
-  # UMASK: 002
   KEEP_APP_RUNNING: 1
   AMC_ENABLED: 1
   AMC_INTERVAL: 60 #in seconds
