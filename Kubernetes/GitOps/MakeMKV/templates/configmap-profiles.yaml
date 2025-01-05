@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name:  {{ include "chart.fullname" . }}-profiles
+  name:  {{ include "app-chart.fullname" . }}-profiles
   labels:
-{{- include "chart.labels" . | nindent 4 }}
+{{- include "app-chart.labels" . | nindent 4 }}
 data:
   Custom.mmcp.xml: |
     <profile>

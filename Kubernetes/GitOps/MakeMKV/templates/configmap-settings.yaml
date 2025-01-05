@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name:  {{ include "chart.fullname" . }}-settings
+  name:  {{ include "app-chart.fullname" . }}-settings
   labels:
-{{- include "chart.labels" . | nindent 4 }}
+{{- include "app-chart.labels" . | nindent 4 }}
 data:
   settings.conf: |
     #

@@ -34,6 +34,10 @@ app:
     intel:
       enabled: false
 
+  # Enabling this will add akri.sh/akri-dvddrive: "1" to limits and requests
+  dvddrive:
+    enabled: true
+
   # resources: {}
   resources:
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -43,11 +47,9 @@ app:
     limits:
     #   cpu: 100m
     #   memory: 128Mi
-      akri.sh/akri-dvddrive: "1"
     requests:
     #   cpu: 100m
-    #   memory: 128Mi
-      akri.sh/akri-dvddrive: "1"      
+    #   memory: 128Mi     
 
   port: 5800
 
@@ -142,19 +144,14 @@ rclone:
   # be useful if other files are needed, such as a private key for sftp mode.
   configSecret: "rclone-config"
 
-  # the remote drive that should be mounted using rclone
-  # this must be in the form of `name:[/optional/path]`
-  # this remote will be mounted at `/data/name` in the app container
+  # the remote drives that should be mounted using rclone
   remotes:
-    - "diskstation-media:/media/makemkv/output"
-
-  # if the remote volumes should be mounted as read only
-  readOnly: false
-
-  # additional arguments to give to rclone when mounting the volume
-  # additionalArgs: []
-  additionalArgs:
-    - --vfs-cache-mode=writes
+    - name: "diskstation-media"
+      remotePath: "/media/makemkv/output"
+      mountPath: "/output"
+      readOnly: false
+      additionalArgs:
+        - --vfs-cache-mode=writes
 
   resources: {}
   # resources:
@@ -225,10 +222,6 @@ commonLabels: {}
 
 # extraEnv: {}
 extraEnv:
-  # USER_ID: ${PUID}
-  # GROUP_ID: ${PGID}
-  # TZ: ${TZ}
-  # UMASK: 002
   CLEAN_TMP_DIR: 1
   AUTO_DISC_RIPPER: 1
   AUTO_DISC_RIPPER_EJECT: 1
@@ -245,12 +238,6 @@ extraVolumeMounts: []
 # extraVolumeMounts:
 #   - name: filebot-license-data
 #     mountPath: /mnt/filebot-license-data
-# extraVolumeMounts:
-#   - name: usb-drive-sr1
-#     mountPath: /dev/sr1
-#   - name: usb-drive-sg2
-#     mountPath: /dev/sg2
-
 
 # Optionally specify additional volumes for the pod.
 extraVolumes: []
@@ -259,13 +246,6 @@ extraVolumes: []
 #     hostPath:
 #       path: /mnt/app-backup
 #       type: Directory
-# extraVolumes:
-#   - name: usb-drive-sr1
-#     hostPath:
-#       path: /dev/sr1
-#   - name: usb-drive-sg2
-#     hostPath:
-#       path: /dev/sg2
 
 extraContainers: []
 # extraContainers:
