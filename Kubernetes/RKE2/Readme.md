@@ -1,13 +1,18 @@
 # Introduction
+
 This shell script first creates the necessary VMs for Rancher Kubernetes Version 2 (RKE2) and then installs an RKE2 Cluster on these nodes in Proxmox.
 
 # Requirements
+
 - Proxmox is set up and running
 - You have a working cloud-init template (see [Cloud-Init](../Cloud-Init/Readme.md))
 
 # Instructions
+
 ## Create and configure the Proxmox nodes
+
 1. Create the nodes in proxmox. At least 3 master and 2 worker nodes are needed. For administration an additional admin-VM will be used. Make sure to use static ip adresses.
+
 ```shell
 rke2names=(\
     rke2-admin \
@@ -76,7 +81,9 @@ done
 EOF
 echo -e " \033[32;5mRKE2 VMs created\033[0m"
 ```
+
 2. Copy the `rke2.sh`, `id_rsa` and `id_rsa.pub` file into your home directory of your admin node. Make sure the script is executable (`chmod +x`).
+
 ```shell
 scp -i ~/.ssh/$certName \
     ~/.ssh/$certName \
@@ -87,7 +94,9 @@ echo -e " \033[32;5mConfigured ${rke2names[0]} VM successfully\033[0m"
 ```
 
 ## Adjust the RKE2 Script
+
 Adjust the IP adresses of the nodes in the `rke2.sh` shell script on your admin node.
 
 ## Deploy RKE2
+
 ssh into your RKE2 Admin VM and run the script `rke2.sh`.
