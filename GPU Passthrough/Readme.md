@@ -1,20 +1,24 @@
-> **Note:** As of today (2024/12/31) GPU passthrough for an Intel UHD Graphics 770 (a.k.a. Alder Lake) integrated GPU works different than GPU passthrough before in Proxmox. Unfortunately most guides on the internet won't work. Thankfully I've found [this post from derekseaman](https://www.derekseaman.com/2024/07/proxmox-ve-8-2-windows-11-vgpu-vt-d-passthrough-with-intel-alder-lake.html) which describes in detail on how to configure iGPU passthrough. I will try to follow his steps in setting this up in my environment. All credits go to him!
-
 # Introduction
+
+> **Note:** As of today (2024/12/31) GPU passthrough for an Intel UHD Graphics 770 (a.k.a. Alder Lake) integrated GPU works different than GPU passthrough before in Proxmox. Unfortunately most guides on the internet won't work. Thankfully I've found [this post from derekseaman](https://www.derekseaman.com/2024/07/proxmox-ve-8-2-windows-11-vgpu-vt-d-passthrough-with-intel-alder-lake.html) which describes in detail on how to configure iGPU passthrough. I will try to follow his steps in setting this up in my environment. All credits go to him!
 
 This guide will give you step by step instructions on how to pass your physical GPU (either a dedicated GPU or a builtin GPU in your CPU) to mutliple Proxmox VMs. This guide is based on ~~the official Proxmox documentation for [PCI(e) Passthrough](https://pve.proxmox.com/wiki/PCI(e)_Passthrough)~~ (read the note above) [this post from derekseaman](https://www.derekseaman.com/2024/07/proxmox-ve-8-2-windows-11-vgpu-vt-d-passthrough-with-intel-alder-lake.html).  
 If you pass a GPU to a VM, this GPU can then be used within Kubernetes for example for transcoding videos in plex. That's not part of this guide but you can find instructions [here](../Kubernetes/GPU%20Passthrough/Readme.md).
 
-# Requirements
+## Requirements
+
 * Proxmox is already setup and running
 * _IOMMU_ support of your GPU: Your GPU needs to support _IOMMU_. Generally, Intel systems with VT-d and AMD systems with AMD-Vi support this. In my case I want to use the builtin GPU within my CPU. I have a [Intel Core i9-13900H](https://www.intel.com/content/www/us/en/products/sku/232135/intel-core-i913900h-processor-24m-cache-up-to-5-40-ghz/specifications.html). According to the Intel documentation this CPU is capable of _Intel Virtualization Technology for Directed I/O (VT-d)_.
 * _Intel VT-d_ and _SR-IOV_ are enabled in the BIOS of your host
 
-# Instructions
-## On the Proxmox Host
+## Instructions
 
-### Proxmox Kernel Configuration
+### On the Proxmox Host
+
+#### Step 1: Proxmox Kernel Configuration
+
 1. ssh into your Proxmox host and execute the following commands. First we need to install Git, kernel headers and do a bit of cleanup.
+
     ```shell
     apt update && apt install -y git sysfsutils pve-headers mokutil
     rm -rf /usr/src/i915-sriov-dkms-*
@@ -23,6 +27,7 @@ If you pass a GPU to a VM, this GPU can then be used within Kubernetes for examp
     ```
 
 2. Now we need to clone the DKMS repo and do a little build work.
+
     ```shell
     cd ~
     git clone https://github.com/strongtz/i915-sriov-dkms.git
@@ -32,20 +37,23 @@ If you pass a GPU to a VM, this GPU can then be used within Kubernetes for examp
     ```
 
 3. Let’s now build the new kernel and check the status. Validate that it shows installed.
+
     ```shell
     dkms install -m i915-sriov-dkms -v $(cat VERSION) --force
     dkms status
     ```
 
 4. For fresh Proxmox 8.1 and later installs, secure boot may be enabled. Just in case it is, we need to load the DKMS key so the kernel will load the module. Run the following command, then enter a password. This password is only for MOK setup, and will be used again when you reboot the host. After that, the password is not needed. It does NOT need to be the same password as you used for the root account.
+
     ```shell
     mokutil --import /var/lib/dkms/mok.pub
     # to keep it simple just use 12345678 as password
     ```
 
-### Proxmox GRUB Configuration
+#### Step 2: Proxmox GRUB Configuration
 
-1. Back in the Proxmox shell run the following commands if you DO NOT have a Google Coral PCIe TPU in your Proxmox host. You would know if you did, so if you aren’t sure, run the first block of commands. If your Google Coral is USB, use the first block of commands as well. Run the second block of commands if your Google Coral is a PCIe module. 
+1. Back in the Proxmox shell run the following commands if you DO NOT have a Google Coral PCIe TPU in your Proxmox host. You would know if you did, so if you aren’t sure, run the first block of commands. If your Google Coral is USB, use the first block of commands as well. Run the second block of commands if your Google Coral is a PCIe module.
+
     ```shell
     cp -a /etc/default/grub{,.bak}
     sudo sed -i '/^GRUB_CMDLINE_LINUX_DEFAULT/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt i915.enable_guc=3 i915.max_vfs=7"' /etc/default/grub
@@ -53,25 +61,28 @@ If you pass a GPU to a VM, this GPU can then be used within Kubernetes for examp
     update-initramfs -u -k all
     ```
 
-### Finish PCI Configuration
+#### Step 3: Finish PCI Configuration
 
-1. Now we need to find which PCIe bus the VGA card is on. It’s typically 00:02.0. 
-```shell
-root@ms01:~# lspci | grep VGA
-00:02.0 VGA compatible controller: Intel Corporation Raptor Lake-P [Iris Xe Graphics] (rev 04)
-```
+1. Now we need to find which PCIe bus the VGA card is on. It’s typically 00:02.0.
+
+    ```shell
+    root@ms01:~# lspci | grep VGA
+    00:02.0 VGA compatible controller: Intel Corporation Raptor Lake-P [Iris Xe Graphics] (rev 04)
+    ```
 
 2. Run the following command and modify the PCIe bus number if needed. In this case I’m using 00:02.0. To verify the file was modified, cat the file and ensure it was modified.
-```shell
-echo "devices/pci0000:00/0000:00:02.0/sriov_numvfs = 7" > /etc/sysfs.conf
-cat /etc/sysfs.conf
-```
 
-3. Reboot the Proxmox host. If using Proxmox 8.1 or later with secure boot you MUST setup MOK. As the Proxmox host reboots, monitor the boot process and wait for the Perform MOK management window (screenshot below). If you miss the first reboot you will need to re-run the mokutil command and reboot again. The DKMS module will NOT load until you step through this setup. 
+    ```shell
+    echo "devices/pci0000:00/0000:00:02.0/sriov_numvfs = 7" > /etc/sysfs.conf
+    cat /etc/sysfs.conf
+    ```
 
-4. On reboot, select Enroll MOK, Continue, Yes, <password>, Reboot. 
+3. Reboot the Proxmox host. If using Proxmox 8.1 or later with secure boot you MUST setup MOK. As the Proxmox host reboots, monitor the boot process and wait for the Perform MOK management window (screenshot below). If you miss the first reboot you will need to re-run the mokutil command and reboot again. The DKMS module will NOT load until you step through this setup.
 
-5. Login to the Proxmox host, open a Shell, then run the commands below. The first should return eight lines of PCIe devices. The second command should return a lot of log data. If everything was successful, at the end you should see minor PCIe IDs 1-7 and finally Enabled 7 VFs. If you are using secure boot and do NOT see the 7 VFs, then the DKMS module is probably not loaded. Troubleshoot as needed. 
+4. On reboot, select Enroll MOK, Continue, Yes, <password>, Reboot.
+
+5. Login to the Proxmox host, open a Shell, then run the commands below. The first should return eight lines of PCIe devices. The second command should return a lot of log data. If everything was successful, at the end you should see minor PCIe IDs 1-7 and finally Enabled 7 VFs. If you are using secure boot and do NOT see the 7 VFs, then the DKMS module is probably not loaded. Troubleshoot as needed.
+
     ```shell
     root@ms01:~# lspci | grep VGA
     00:02.0 VGA compatible controller: Intel Corporation Raptor Lake-P [Iris Xe Graphics] (rev 04)
@@ -266,16 +277,15 @@ cat /etc/sysfs.conf
     [    4.667536] i915 0000:00:02.0: Enabled 7 VFs
     ```
 
-6. Now that the Proxmox host is ready, we can install and configure Windows 11. If you do NOT see 7 VFs enabled, stop. Troubleshoot as needed. Do not pass go, do not collect $100 without 7 VFs. If you are using secure boot and you aren’t seeing the 7 VFs, double check the MOK configuration. 
+6. Now that the Proxmox host is ready, we can install and configure Windows 11. If you do NOT see 7 VFs enabled, stop. Troubleshoot as needed. Do not pass go, do not collect $100 without 7 VFs. If you are using secure boot and you aren’t seeing the 7 VFs, double check the MOK configuration.
 
+### Creating a VM
 
-## Creating a VM
+1. Download the latest Fedora Windows VirtIO driver ISO from [here](https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso).
 
-1. Download the latest Fedora Windows VirtIO driver ISO from [here](https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso). 
+2. Download the Windows 11 ISO from [here](https://www.microsoft.com/software-download/windows11). Use the Download Windows 11 Disk Image (ISO) for x64 devices option.
 
-2. Download the Windows 11 ISO from [here](https://www.microsoft.com/software-download/windows11). Use the Download Windows 11 Disk Image (ISO) for x64 devices option. 
-
-3. Upload both the VirtIO and Windows 11 ISOs to the Proxmox server. You can use any Proxmox storage container that you wish. I uploaded them to my Synology. If you don’t have any NAS storage mapped, you probably have “local“, which works. 
+3. Upload both the VirtIO and Windows 11 ISOs to the Proxmox server. You can use any Proxmox storage container that you wish. I uploaded them to my Synology. If you don’t have any NAS storage mapped, you probably have “local“, which works.
 
 4. Start the VM creation process. On the General tab enter the name of your VM. Click Next
 
@@ -287,19 +297,19 @@ cat /etc/sysfs.conf
 
 8. On the CPU tab, change the Type to host. Allocate however many cores you want. I chose 24
 
-9. On the Memory tab allocated as much memory as you want. I suggest 8GB or more. 
+9. On the Memory tab allocated as much memory as you want. I suggest 8GB or more.
 
 10. On the Network tab change the model to Intel E1000. Note: We will change this to VirtIO later, after Windows is configured.
 
-11. Review your VM configuration. Click Finish. Note: If you are on Proxmox 8.0, modify the hardware configuration again and add a CD/DVD drive and select the VirtIO ISO image. Do not start the VM. 
+11. Review your VM configuration. Click Finish. Note: If you are on Proxmox 8.0, modify the hardware configuration again and add a CD/DVD drive and select the VirtIO ISO image. Do not start the VM.
 
-## Windows 11 Installation
+### Windows 11 Installation
 
 1. In Proxmox click on the Windows 11 VM, then open a console. Start the VM, then press Enter to boot from the CD.
 
 2. Select your language, time, currency, and keyboard. Click Next. Click Install now.
 
-3. Click I don’t have a product key. 
+3. Click I don’t have a product key.
 
 4. Select Windows 11 Pro. Click Next.
 
@@ -307,27 +317,27 @@ cat /etc/sysfs.conf
 
 6. Click on Custom install.
 
-7. Click Load driver. Select the virtio-driver which should be mounted as D:\amd64\win11. Select 'Red Hat VirtIO SCSI pass-through controller'. Select install. 
+7. Click Load driver. Select the virtio-driver which should be mounted as D:\amd64\win11. Select 'Red Hat VirtIO SCSI pass-through controller'. Select install.
 
 8. Your SCSI disk should appear. On Where do you want to install Windows click Next.
 
 9. Sit back and wait for Windows 11 to install.
 
-## Windows 11 Initial Configuration
+### Windows 11 Initial Configuration
 
 > Note: I strongly suggest using a Windows local account during setup, and not your Microsoft cloud account. This will make remote desktop setup easier, as you can’t RDP to Windows 11 using your Microsoft cloud account. The procedure below “tricks” Windows into allowing you to create a local account by attempting to use a locked out cloud account. Also, do NOT use the same username for the local account as your Microsoft cloud account. This might cause complications if you later add your Microsoft cloud account.
 
 1. Once Windows boots you should see a screen confirming your country or region. Make an appropriate selection and click Yes.
 
-2. Confirm the right keyboard layout. Click Yes. Add a second keyboard layout if needed. 
+2. Confirm the right keyboard layout. Click Yes. Add a second keyboard layout if needed.
 
-3. Wait for Windows to check for updates. Windows may reboot. 
+3. Wait for Windows to check for updates. Windows may reboot.
 
 4. Enter the name of your PC. Click Next. Wait for Windows to reboot.
 
 5. Click Set up for personal use. Click Next. Click Sign in.
 
-6. **This does not work anymore** To bypass using your Microsoft cloud account, enter no @ thankyou .com (no spaces), enter a random password, click Next on Oops, something went wrong. 
+6. **This does not work anymore** To bypass using your Microsoft cloud account, enter no @ thankyou .com (no spaces), enter a random password, click Next on Oops, something went wrong.
 
 7. **This does not work anymore** On the Who’s going to use this device? screen enter a username. Click Next.
 
@@ -337,7 +347,7 @@ cat /etc/sysfs.conf
 
 10. Select the Privacy settings you desire and click Accept.
 
-11. In Windows open the mounted ISO in Explorer. Run virtio-win-gt-x64 and virtio-win-guest-tools. Use all default options. 
+11. In Windows open the mounted ISO in Explorer. Run virtio-win-gt-x64 and virtio-win-guest-tools. Use all default options.
 
 12. Shutdown (NOT reboot) Windows.
 
@@ -345,13 +355,13 @@ cat /etc/sysfs.conf
 
 14. Start the Windows 11 VM. Verify at least one IP is showing in the Proxmox console.
 
-15. You can now unmount the Windows 11 and VirtIO ISOs. 
+15. You can now unmount the Windows 11 and VirtIO ISOs.
 
-16. You will probably also want to change the Windows power plan so that the VM doesn’t hibernate (unless you want it to). 
+16. You will probably also want to change the Windows power plan so that the VM doesn’t hibernate (unless you want it to).
 
 17. You may want to disable local account password expiration, as RDP will fail when your password expires with no way to reset. You’d need to re-enable the Proxmox console to reset your password (see later in this post for a how to).
 
-## Windows 11 vGPU Configuration
+### Windows 11 vGPU Configuration
 
 1. Open a Proxmox console to the VM and login to Windows 11. In the search bar type remote desktop, then click on remote desktop settings.
 
@@ -361,7 +371,7 @@ cat /etc/sysfs.conf
 
 4. Inside the Windows VM open your favorite browser and download the latest Intel “Recommended” graphics driver from [here](https://www.intel.de/content/www/de/de/download/785597/842655/intel-arc-iris-xe-graphics-windows.html). In my case I’m grabbing 31.0.101.4972.
 
-5. Shutdown the Windows VM. 
+5. Shutdown the Windows VM.
 
 6. In the Proxmox console click on the Windows 11 VM in the left pane. Then click on Hardware. Click on the Display item in the right pane. Click Edit, then change it to none.
 
@@ -369,13 +379,13 @@ cat /etc/sysfs.conf
 
 8. Select Raw Device. Then review all of the PCI devices available. Select one of the sub-function (.1, .2, etc..) graphics controllers (i.e. ANY entry except the 00:02.0). Do NOT use the root “0” device, for ANYTHING. I chose 02.1. Click Add. Do NOT tick the “All Functions” box. Tick the box next to Primary GPU. Click Add.
 
-9. Start the Windows 11 VM and wait a couple of minutes for it to boot and RDP to become active. Note, the Proxmox Windows console will NOT connect since we removed the virtual VGA device. You will see a Failed to connect to server message. You can now ONLY access Windows via RDP. 
+9. Start the Windows 11 VM and wait a couple of minutes for it to boot and RDP to become active. Note, the Proxmox Windows console will NOT connect since we removed the virtual VGA device. You will see a Failed to connect to server message. You can now ONLY access Windows via RDP.
 
-10. RDP into the Windows 11 VM. Locate the Intel Graphics driver installer and run it. If all goes well, you will be presented with an Installation complete! screen. Reboot. If you run into issues with the Intel installer, skip down to my troubleshooting section below to see if any of those tips help. 
+10. RDP into the Windows 11 VM. Locate the Intel Graphics driver installer and run it. If all goes well, you will be presented with an Installation complete! screen. Reboot. If you run into issues with the Intel installer, skip down to my troubleshooting section below to see if any of those tips help.
 
-## Windows 11 vGPU Validation
+### Windows 11 vGPU Validation
 
-1. RDP into Windows and launch Device Manager. 
+1. RDP into Windows and launch Device Manager.
 
 2. Expand Display adapters and verify there’s an Intel adapter in a healthy state (e.g. no error 43).
 
@@ -383,14 +393,15 @@ cat /etc/sysfs.conf
 
 4. Launch Task Manager, then watch a YouTube video. Verify the GPU is being used.
 
-## On Linux
+### On Linux
 
-> **Attention!** According to [the list of supported os distributions](https://github.com/intel-gpu/intel-gpu-i915-backports?tab=readme-ov-file#supported-os-distributions) the DKMS driver may not be supported for the Linux Kernel or OS distribution you are using. At the time of writing Ubuntu 24.04 with Linux Kernel 6.8 is supported in general but taking a look in the [version information](https://github.com/intel-gpu/intel-gpu-i915-backports/blob/backport/main/versions) only Kernel version 6.8.0-**50** is tested and supported. Since I'm running Kernel 6.8.0-**51** DKMS installation will wail. GPU passthrough cannot be enabled until this the newer Kernel is supported or you switch to an older (but supported) Kernel.
+> **Attention!** According to [the list of supported os distributions](https://github.com/intel-gpu/intel-gpu-i915-backports?tab=readme-ov-file#supported-os-distributions) the DKMS driver may not be supported for the Linux Kernel or OS distribution you are using. At the time of writing Ubuntu 24.04 with Linux Kernel 6.8 is supported in general but taking a look in the [version information](https://github.com/intel-gpu/intel-gpu-i915-backports/blob/backport/main/versions) only Kernel version 6.8.0-**50** is tested and supported. Since I'm running Kernel 6.8.0-**51** DKMS installation will fail. GPU passthrough cannot be enabled until the newer Kernel is supported or you switch to an older (but supported) Kernel.
 
-1. ssh into your VM and execute the following command to see currently used Linux Kernel: 
+1. ssh into your VM and execute the following command to see currently used Linux Kernel:
     `uname -r`.
 
     The output should look like this:
+
     ```shell
     6.8.0-51-generic
     ```
@@ -420,6 +431,7 @@ cat /etc/sysfs.conf
     ```
 
 3. Install git and clone [this repository](https://github.com/strongtz/i915-sriov-dkms):
+
     ```shell
     sudo apt install -y git
     cd ~
@@ -427,6 +439,7 @@ cat /etc/sysfs.conf
     ```
 
 4. Install dkms:
+
     ```shell
     sudo apt install -y build-* dkms
     cd ~/i915-sriov-dkms
@@ -439,6 +452,7 @@ cat /etc/sysfs.conf
     > Note: In case you've missed the MOK setup for any reason, you can redo the MOK setup by executing `sudo mokutil --import /var/lib/shim-signed/mok/MOK.der`, entering a password and doing a reboot again.
 
 5. Edit the GRUB bootloader `/etc/default/grub` command line and change `GRUB_CMDLINE_LINUX_DEFAULT`:
+
     ```shell
     # old value:
     GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
@@ -448,6 +462,7 @@ cat /etc/sysfs.conf
     ```
 
 6. Update grub and initramfs:
+
     ```shell
     sudo update-grub
     sudo update-initramfs -u -k all
@@ -456,6 +471,7 @@ cat /etc/sysfs.conf
 7. Reboot the VM and make sure to enter the password you've set in step 4 on reboot!
 
 8. _dmesg_ should report the newly installed i915 driver:
+
     ```shell
     ubuntu@gpu-lin:~$ sudo dmesg | grep i915
                    use xe.force_probe='a7a0' and i915.force_probe='!a7a0'
@@ -475,6 +491,7 @@ cat /etc/sysfs.conf
     ```
 
     There should also be a new `/dev/dri` directory containing the GPU:
+
     ```shell
     ubuntu@gpu-lin:~$ ll /dev/dri/
     total 0
@@ -488,6 +505,7 @@ cat /etc/sysfs.conf
     > Note: If you can see more than one _card_ entry (i.e. `card0` and `card1`) , you have to shutdown the VM and in Proxmox set the PCI device as _Primary GPU_.
 
     _lspci_ should report `i915` and `xe` as modules and `i915` as the driver for the GPU:
+
     ```shell
     ubuntu@gpu-lin:~$ sudo lspci -v -d  8086:a7a0
     06:10.0 VGA compatible controller: Intel Corporation Raptor Lake-P [Iris Xe Graphics] (rev 04) (prog-if 00 [VGA controller])
@@ -501,6 +519,7 @@ cat /etc/sysfs.conf
     ```
 
     If you've installed the `intel-gpu-tools` you can check for your GPU as well:
+
     ```shell
     ubuntu@gpu-lin:~$ intel_gpu_top -L
     card0                    Intel Alderlake_p (Gen12)         pci:vendor=8086,device=A7A0,card=0
