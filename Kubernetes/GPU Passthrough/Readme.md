@@ -1,13 +1,17 @@
 # Introduction
+
 This guide will give you step by step instructions on how to passthrough a GPU into your RKE2 Cluster, to share it with multiple containers.
 
 # Requirements
+
 * You already followed [this guide](../../GPU%20Passthrough/Readme.md) to enable GPU passthrough to a proxmox VM. Your GPU is already visible inside the proxmox VM.
 
 # Instructions
+
 On the [Intel device plugin for Kubernetes](https://intel.github.io/intel-device-plugins-for-kubernetes/cmd/gpu_plugin/README.html) website, Intel provides the necessary configuration files for passing an Intel GPU to Kubernetes.  
 
 There are two differend methods available (in my case):
+
 1. Pass the GPU to a single container  
     or
 2. Pass the GPU to multiple containers.
@@ -15,6 +19,7 @@ There are two differend methods available (in my case):
 You can install the device plugins using a helm chart. On [this](https://intel.github.io/intel-device-plugins-for-kubernetes/INSTALL.html) page Intel summarizes the installation methods you can use. For installation using helm charts follow these steps:
 
 ## Install helm repositories
+
 ```shell
 helm repo add jetstack https://charts.jetstack.io # for cert-manager, should be already there
 helm repo add nfd https://kubernetes-sigs.github.io/node-feature-discovery/charts # for NFD
@@ -23,7 +28,9 @@ helm repo update
 ```
 
 ## Installing cert-manager (usually already done)
+
 This is already done during the basic installation of rke2, so you may skip this step
+
 ```shell
 helm install \
     cert-manager jetstack/cert-manager \
@@ -34,6 +41,7 @@ helm install \
 ```
 
 ## Installing NFD
+
 ```shell
 helm install \
     nfd nfd/node-feature-discovery \
@@ -42,6 +50,7 @@ helm install \
 ```
 
 ## Installing operator
+
 ```shell
 helm install \
     dp-operator intel/intel-device-plugins-operator \
@@ -50,7 +59,9 @@ helm install \
 ```
 
 ## Installing specific plugins
+
 Replace `PLUGIN` with the desired plugin name. At least the following plugins are supported: gpu, sgx, qat, dlb, dsa & iaa.
+
 ```shell
 helm install \
     <PLUGIN> intel/intel-device-plugins-<PLUGIN> \
@@ -60,12 +71,15 @@ helm install \
 ```
 
 ### Customizing plugins
+
 To customize plugin features, we can take a look at the available chart values:
+
 ```shell
 helm show values intel/intel-device-plugins-<PLUGIN>
 ```
 
 For example, gpu plugin has these values:
+
 ```yaml
 name: gpudeviceplugin-sample
 
@@ -91,7 +105,9 @@ tolerations:
 
 nodeFeatureRule: true
 ```
+
 In my case the installation command will be as follows:
+
 ```shell
 helm install \
     gpu intel/intel-device-plugins-gpu \
@@ -102,10 +118,12 @@ helm install \
 ```
 
 ## Verfiy the installation
+
 To verfify the installation you can execute the following command to get all nodes with a gpu dicovered:  
 `kubectl get nodes -o=jsonpath="{range .items[*]}{.metadata.name}{'\n'}{' i915: '}{.status.allocatable.gpu\.intel\.com/i915}{'\n'}"`
 
 The output should look like this:
+
 ```shell
 ubuntu@rke2-admin:~$ kubectl get nodes -o=jsonpath="{range .items[*]}{.metadata.name}{'\n'}{' i915: '}{.status.allocatable.gpu\.intel\.com/i915}{'\n'}"
 longhorn-01
@@ -127,19 +145,24 @@ rke2-05
 ```
 
 ## Listing available versions
+
 To list all available versions of the operator as well as each plugin, use these commands.
+
 ```shell
 helm search repo intel/intel-device-plugins-operator --versions
 helm search repo intel/intel-device-plugins-<plugin> --versions
 ```
 
 ## Upgrading the operator and plugins
+
 The upgrade of the deployed plugins can be done by simply installing a new release of the operator.
 
 The operator auto-upgrades operator-managed plugins (CR images and thus corresponding deployed daemonsets) to the current release of the operator.
 
 # Request a GPU in your deployments
+
 To request a GPU in your deployments you can use the `resources` entries in your `values.yaml` file. For example in [values.yaml file of the plex deployment](../GitOps/Plex%20Media%20Server/values.yaml) I've specified the following:
+
 ```yaml
 pms:
   # ...
@@ -149,5 +172,5 @@ pms:
     requests:
       gpu.intel.com/i915: "1"
 ```
-With these settings the gpu device plugin will look for available resources for this deployment and place it on a appropriate node.
 
+With these settings the gpu device plugin will look for available resources for this deployment and place it on a appropriate node.
