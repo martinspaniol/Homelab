@@ -212,8 +212,8 @@ extraEnv:
   # HOSTNAME: "plex"
   TZ: "Europe/Berlin"
   # PLEX_UPDATE_CHANNEL: "5"
-  PLEX_UID: "0"
-  PLEX_GID: "992"
+  # PLEX_UID: "0"
+  # PLEX_GID: "992"
   # a list of CIDRs that can use the server without authentication
   # this is only used for the first startup of PMS
   # ALLOWED_NETWORKS: "10.0.0.0/8"
