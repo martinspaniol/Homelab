@@ -204,16 +204,16 @@ priorityClassName: ""
 # Common Labels for all resources created by this chart.
 commonLabels: {}
 
-extraEnv: {}
-# extraEnv:
+# extraEnv: {}
+extraEnv:
   # This claim is optional, and is only used for the first startup of PMS
   # The claim is obtained from https://www.plex.tv/claim/ is is only valid for a few minutes
   # PLEX_CLAIM: "claim-6RH3Yx5X6LYyjWzQ9CDm"
   # HOSTNAME: "plex"
-  # TZ: "Europe/Berlin"
+  TZ: "Europe/Berlin"
   # PLEX_UPDATE_CHANNEL: "5"
-  # PLEX_UID: "uid of plex user"
-  # PLEX_GID: "group id of plex user"
+  PLEX_UID: "0"
+  PLEX_GID: "992"
   # a list of CIDRs that can use the server without authentication
   # this is only used for the first startup of PMS
   # ALLOWED_NETWORKS: "10.0.0.0/8"
