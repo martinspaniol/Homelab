@@ -1,0 +1,22 @@
+[global]
+keyboard = "de"
+country = "de"
+fqdn = "ms01.fritz.box"
+mailto = "<YOUR EMAIL>>"
+timezone = "Europe/Berlin"
+root_password_hashed = "<YOUR PASSWORD>"
+root_ssh_keys = [
+    "<YOUR PUBLIC SSH KEY>"
+]
+
+[network]
+source = "from-answer"
+cidr = "192.168.0.12/24"
+dns = "192.168.0.10"
+gateway = "192.168.0.1"
+filter.ID_NET_NAME = "enp90s0"
+
+[disk-setup]
+filesystem = "zfs"
+zfs.raid = "raid1"
+disk_list = ["nvme0n1", "nvme1n1"]
