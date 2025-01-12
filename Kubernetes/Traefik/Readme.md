@@ -1,26 +1,24 @@
-# IMPORTANT #
-Make sure that you watch the video instructions carefully as you need to amend the files correctly.
-YOU CANNOT JUST RUN THIS SCRIPT!
-Incorrect use can result in you being locked out of Lets Encrypt for a period of time.
+# Traefik
 
-# NOTE FOR TRAEFIK v3 #
-Many guides out there (including, until recently, this repo) reference an older version of the Kubernetes CRDs API group.
-This older version is [deprecated](https://doc.traefik.io/traefik/master/migration/v2-to-v3/#kubernetes-crds-api-group-traefikcontainous) 
-as of Traefik v3 (released [29 April 2024](https://github.com/traefik/traefik/releases/tag/v3.0.0)) and must be updated to the new version
-in your IngressRoute, Middleware, ServersTransport, etc. yaml manifests for Traefik.  Any resources with the deprecated version will not 
-be recognized by Traefik v3.
+This guide gives you a step by step instruction on how to install Traefik including its Dashboard, Cert-Manager (for certificates) and an Issuer (Let's Encrypt) for INWX.
 
-Old, deprecated version:
-```yaml
-apiVersion: traefik.containo.us/v1alpha1
-```
+## Requirements
 
-New, supported version:
-```yaml
-apiVersion: traefik.io/v1alpha1
-```
-This new version is also supported in later releases of Traefik v2, so you can update your Traefik-related manifests 
-to the new version and apply the updated manifests before upgrading your Traefik deployment.
+* RKE2 is already set up and running
 
-It may be worth reviewing other v2 to v3 migration notes provided by Traefik: 
-[Traefik v2 to v3 Migration](https://doc.traefik.io/traefik/master/migration/v2-to-v3/)
+## Installation
+
+The initial installation was done with the [deploy.sh-Script][def] by [JimsGarage][def2]. In that script all components are installed by applying .yaml-files to your kubernetes cluster. I strongly recommend watching his [video][def3] for further explanations.  
+Since I prefer the use of helm charts, I switched my installation to helm. See the [Upgrade-Guide](../Upgrade/Readme.md) for details.
+
+## Configuration
+
+The following steps my be done after the initial installation.
+
+The default cluster issuer does not support [INWX][def4] which is my DNS provider. Fortunately we can use [this][def5] helm chart to make it work. See Step 11 in the [deploy.sh-script][def].
+
+[def]: ./deploy.sh
+[def2]: https://github.com/JamesTurland/JimsGarage
+[def3]: https://www.youtube.com/watch?v=XH9XgiVM_z4&pp=ygUSamltc2dhcmFnZSB0cmFlZmlr
+[def4]: https://www.inwx.de
+[def5]: https://smueller18.gitlab.io/helm-charts
