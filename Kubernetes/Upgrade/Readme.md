@@ -82,5 +82,6 @@ helm upgrade --install cert-manager jetstack/cert-manager \
   --set-string nodeSelector.worker="true" \
   --set-string webhook.nodeSelector.worker="true" \
   --set-string cainjector.nodeSelector.worker="true" \
-  --set-string startupapicheck.nodeSelector.worker="true"
+  --set-string startupapicheck.nodeSelector.worker="true" \
+  --set crds.enabled=true
 ```
