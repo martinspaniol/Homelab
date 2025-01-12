@@ -1,3 +1,4 @@
+# Copy and rename this file as necessary
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -13,3 +14,9 @@ spec:
   dnsNames:
   - "*.<YOUR DOMAIN>.de" # change to your domain
   - <YOUR DOMAIN>.de # change to your domain
+  keystores:
+    pkcs12:
+      create: true
+      passwordSecretRef:
+        name: <YOUR DOMAIN>-tls-keystore
+        key: password
