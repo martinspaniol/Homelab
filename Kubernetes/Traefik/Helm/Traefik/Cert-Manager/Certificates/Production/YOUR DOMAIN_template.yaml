@@ -20,3 +20,4 @@ spec:
       passwordSecretRef:
         name: <YOUR DOMAIN>-tls-keystore
         key: password
+      profile: Modern2023
