@@ -129,9 +129,11 @@ spec:
             {{ toYaml . | indent 12 | trim }}
             {{- end }}
         {{- end }}
+      {{- if ne .Values.app.configStorage "" }}
         volumeMounts:
         - name: app-config
           mountPath: /config
+      {{- end }}
       {{- if and .Values.rclone.enabled .Values.rclone.configSecret }}
       {{- range .Values.rclone.remotes }}
         - name: rclone-media-{{ .name }}
