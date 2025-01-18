@@ -12,10 +12,10 @@ helm:
   # The directory of the chart in the repo.  Also any valid go-getter supported
   # URL can be used there is specify where to download the chart from.
   # If repo below is set this value is the chart name in the repo
-  chart: ./drawio
+  chart: oci://tccr.io/truecharts/drawio
 
   # An https to a valid Helm repository to download the chart from
-  repo: "oci://tccr.io/truecharts"
+  repo: ""
 
   # Used if repo is set to look up the version of the chart
   version: ""
