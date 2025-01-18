@@ -1,12 +1,16 @@
-# Introduction
+# Cloud-init setup
+
 To deploy multiple VMs in Proxmox with the exact same settings it's recommended to use a template. The following lines of code provide a way to create such a template.
 
-# Requirements
+## Requirements
+
 - Proxmox is already installed
 - You can access your Proxmox Hypervisor using an SSH key
 
-# Instructions
+## Instructions
+
 Simply run the following script:  
+
 ```shell
 # Change this to the name (or IP) of your Proxmox Hypervisor
 proxmoxhv=ms01
