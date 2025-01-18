@@ -49,7 +49,7 @@ app:
     #   cpu: 100m
     #   memory: 128Mi
 
-  port: 8443
+  port: 8080
 
 # A basic image that will convert the configmap to a file in the rclone config volume
 # this is ignored if rclone is not enabled
