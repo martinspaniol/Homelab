@@ -1,0 +1,201 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "app-chart.fullname" . }}
+  labels:
+    name: {{ include "app-chart.fullname" . }}
+{{ include "app-chart.labels" . | indent 4 }}
+  {{- with .Values.statefulSet.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+spec:
+  serviceName: {{ include "app-chart.fullname" . }}
+  selector:
+    matchLabels:
+      {{- include "app-chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "app-chart.labels" . | nindent 8 }}
+      annotations:
+        {{- toYaml .Values.statefulSet.podAnnotations | nindent 8 }}
+    spec:
+      {{- if .Values.runtimeClassName }}
+      runtimeClassName: {{ .Values.runtimeClassName | quote }}
+      {{- end }}
+      serviceAccountName: {{ include "app-chart.serviceAccountName" . }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName | quote }}
+      {{- end }}
+      volumes:
+      {{- if .Values.app.configExistingClaim }}
+      - name: app-config
+        persistentVolumeClaim:
+          claimName: {{ .Values.app.configExistingClaim | quote }}
+      {{- end }}
+      {{- if and .Values.rclone.enabled .Values.rclone.configSecret }}
+      {{- range .Values.rclone.remotes }}
+      - name: rclone-media-{{ .name }}
+        emptyDir: {}
+      {{- end }}
+      - name: rclone-config
+        emptyDir: {}
+      - name: rclone-config-data
+        secret:
+          secretName: {{ .Values.rclone.configSecret }}
+      {{- end }}
+      {{- if .Values.initContainer.script }}
+      - name: init-script-configmap
+        configMap:
+          defaultMode: 0700
+          name: {{ include "app-chart.fullname" . }}-init-script
+      {{- end }}
+      {{- if .Values.extraVolumes }}
+{{ toYaml .Values.extraVolumes | indent 6 }}
+      {{- end }}
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      terminationGracePeriodSeconds: 120
+      initContainers:
+      {{- if .Values.initContainer.script }}
+      - name: {{ include "app-chart.fullname" . }}-app-init
+        image: {{ include "app-chart.init_image" . }}
+        command: ["/init/init.sh"]
+        volumeMounts:
+        - name: app-config
+          mountPath: /config
+        - name: init-script-configmap
+          mountPath: /init
+      {{- if .Values.extraVolumeMounts }}
+{{ toYaml .Values.extraVolumeMounts | indent 8}}
+      {{- end }}
+      {{- end }}
+      {{- if and .Values.rclone.enabled .Values.rclone.configSecret }}
+      - name: {{ include "app-chart.fullname" . }}-config
+        image: {{ include "app-chart.init_image" . }}
+        command:
+          - sh
+          - -c
+        args:
+          - cp -v /in/* /out/
+        volumeMounts:
+        - name: rclone-config-data
+          mountPath: /in
+          readOnly: true
+        - name: rclone-config
+          mountPath: /out
+      {{- end }}
+      containers:
+      - name: {{ include "app-chart.fullname" . }}-app
+        image: {{ include "app-chart.image" . }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.app.port }}
+          name: app
+        env:
+        {{- range $key, $value := .Values.extraEnv }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- if or .Values.app.gpu.intel.enabled .Values.app.dvddrive.enabled .Values.app.resources }}
+        resources:
+          limits:
+            {{- if .Values.app.gpu.intel.enabled }}
+            gpu.intel.com/i915: "1"
+            {{- end }}
+            {{- if .Values.app.dvddrive.enabled }}
+            akri.sh/akri-dvddrive: "1"
+            {{- end }}
+            {{- with .Values.app.resources.limits }}
+            {{ toYaml . | indent 12 | trim }}
+            {{- end }}
+          requests:
+            {{- if .Values.app.gpu.intel.enabled }}
+            gpu.intel.com/i915: "1"
+            {{- end }}
+            {{- if .Values.app.dvddrive.enabled }}
+            akri.sh/akri-dvddrive: "1"
+            {{- end }}
+            {{- with .Values.app.resources.requests }}
+            {{ toYaml . | indent 12 | trim }}
+            {{- end }}
+        {{- end }}
+        volumeMounts:
+        - name: app-config
+          mountPath: /config
+      {{- if and .Values.rclone.enabled .Values.rclone.configSecret }}
+      {{- range .Values.rclone.remotes }}
+        - name: rclone-media-{{ .name }}
+          mountPath: "{{ .mountPath }}"
+          mountPropagation: HostToContainer
+      {{- end }}
+      {{- end }}
+      {{- if .Values.extraVolumeMounts }}
+{{ toYaml .Values.extraVolumeMounts | indent 8 }}
+      {{- end }}
+    {{- if and .Values.rclone.enabled .Values.rclone.configSecret }}
+    {{- range .Values.rclone.remotes }}
+      - name: {{ include "app-chart.fullname" $ }}-rclone-{{ .name }}
+        image: {{ include "app-chart.rclone_image" $ }}
+        imagePullPolicy: {{ $.Values.rclone.image.pullPolicy }}
+        args:
+          - mount
+          - "{{ .name }}:{{ .remotePath }}"
+          - "{{ .mountPath }}"
+          - --config=/etc/rclone/rclone.conf
+          - --allow-non-empty
+          - --allow-other
+        {{- if .readOnly }}
+          - --read-only
+        {{- end }}
+        {{- range .additionalArgs }}
+          - {{ . }}
+        {{- end }}
+        {{- with $.Values.rclone.resources }}
+        resources:
+          {{ toYaml . | indent 10 }}
+      {{- end }}
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh","-c","fusermount3 -uz {{ .mountPath }}"]
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - SYS_ADMIN
+        volumeMounts:
+        - name: rclone-config
+          mountPath: /etc/rclone
+        - name: rclone-media-{{ .name }}
+          mountPath: "{{ .mountPath }}"
+          mountPropagation: Bidirectional
+      {{- end }}
+      {{- end }}
+      {{- with .Values.extraContainers }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+  {{- if not .Values.app.configExistingClaim }}
+    {{- if not .Values.app.configStorage }}
+  volumeClaimTemplates:
+  - metadata:
+      name: app-config
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      {{- if .Values.app.storageClassName }}
+      storageClassName: {{ .Values.app.storageClassName }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.app.configStorage }}
+    {{- end }}
+  {{- end }}
