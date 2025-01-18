@@ -100,7 +100,15 @@ tmpfs           5.0M     0  5.0M   0% /run/lock
 tmpfs           791M   12K  791M   1% /run/user/1000
 ```
 
-### Step 3: Mount scaninput and backup folder
+### Step 3: Install linux-modules-extra
+
+In order to specify the `iocharset` when mounting a cifs share in `/etc/fstab` you need to install the `linux-modules-extra` for your specific kernel version:
+
+```shell
+sudo apt install linux-modules-extra-$(uname -r)
+```
+
+### Step 4: Mount scaninput and backup folder
 
 In my case the scaninput is a share on my Synology NAS. We need to mount this share to `/opt/ecodms/workdir/scaninput` on the VM:
 
@@ -114,7 +122,7 @@ sudo mkdir -p $mountPoint # create the mount point for the share
 sudo chown ecodms:ecodms $mountPoint
 echo -e "username=ecodms\npassword=BjWZzj2~GQ.pkgnsXvX,59xjAES8=j5-" | sudo tee $credentialFile > /dev/null # create the smb credentials file
 sudo chmod 600 $credentialFile # secure the credentials
-echo -e "//$serverName/$shareName\t$mountPoint\tcifs\tcredentials=$credentialFile,sec=ntlmv2i,vers=3.0,uid=1001,gid=1001\t0 0" | sudo tee -a /etc/fstab > /dev/null # Add the new mount to fstab
+echo -e "//$serverName/$shareName\t$mountPoint\tcifs\tcredentials=$credentialFile,sec=ntlmv2i,vers=3.0,uid=1001,gid=1001,iocharset=utf8\t0 0" | sudo tee -a /etc/fstab > /dev/null # Add the new mount to fstab
 
 shareName="ecodms/backup"
 mountPoint="/opt/ecodms-backup"
@@ -136,7 +144,7 @@ sudo mount -a # mount the share
 sudo systemctl daemon-reload
 ```
 
-### Step 4: Add package source
+### Step 5: Add package source
 
 Since ecoDMS is not included in the default package sources of Ubuntu, we need to manually add it:
 
@@ -146,7 +154,7 @@ sudo wget -qO /etc/apt/trusted.gpg.d/ecodms.asc http://www.ecodms.de/gpg/ecodms.
 sudo apt-get update # update the package sources
 ```
 
-### Step 5: Install ecoDMS packages
+### Step 6: Install ecoDMS packages
 
 The ecoDMS packages include plugins/Add-Ons, as well as the ecoDMS PDF/A-printer for Windows. The ecoDMS client for macOS and Windows will be stored as well.
 
@@ -157,7 +165,7 @@ sudo chown ecodms:ecodms $packageFolder
 sudo apt-get install -y ecodmspackages
 ```
 
-### Step 6: Install ecoDMS server
+### Step 7: Install ecoDMS server
 
 To install the ecoDMS server use this command:
 > **Note:** This is a gui based installation. You have to do a few keypresses.
