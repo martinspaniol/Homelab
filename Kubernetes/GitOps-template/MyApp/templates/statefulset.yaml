@@ -184,8 +184,7 @@ spec:
       {{- with .Values.extraContainers }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
-  {{- if not .Values.app.configExistingClaim }}
-    {{- if not .Values.app.configStorage }}
+  {{- if and (not .Values.app.configExistingClaim) (ne .Values.app.configStorage "") }}
   volumeClaimTemplates:
   - metadata:
       name: app-config
@@ -197,5 +196,4 @@ spec:
       resources:
         requests:
           storage: {{ .Values.app.configStorage }}
-    {{- end }}
   {{- end }}
