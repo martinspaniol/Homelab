@@ -151,8 +151,8 @@ rclone:
       mountPath: "/output"
       readOnly: false
       additionalArgs:
-        - --vfs-cache-mode=writes
-        - --vfs-cache-max-size=1G
+        - --vfs-cache-mode=off
+        - -vv
 
   resources: {}
   # resources:
