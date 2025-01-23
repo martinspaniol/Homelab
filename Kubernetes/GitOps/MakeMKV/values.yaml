@@ -153,7 +153,6 @@ rclone:
       additionalArgs:
         - --vfs-cache-mode=writes
         - --vfs-cache-max-size=1G
-        - --cache-dir=/output/tmp
 
   resources: {}
   # resources:
