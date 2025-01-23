@@ -151,7 +151,7 @@ rclone:
       mountPath: "/output"
       readOnly: false
       additionalArgs:
-        - --vfs-cache-mode=writes
+        - --vfs-cache-mode=minimal
 
   resources: {}
   # resources:
