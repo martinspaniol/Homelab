@@ -223,6 +223,8 @@ commonLabels: {}
 
 # extraEnv: {}
 extraEnv:
+  USER_ID: 1024
+  GROUP_ID: 100
   CLEAN_TMP_DIR: 1
   AUTO_DISC_RIPPER: 1
   AUTO_DISC_RIPPER_EJECT: 1
