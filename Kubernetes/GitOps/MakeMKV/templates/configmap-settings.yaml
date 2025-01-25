@@ -22,6 +22,7 @@ data:
     app_Proxy = ""
     app_ShowAVSyncMessages = "1"
     app_ShowDebug = "1"
+    app_UpdateEnable = "0"
     app_ccextractor = "/opt/makemkv/bin/mmccextr"
     sdf_Stop = ""
     speed_HL-DT-ST_BD-RE__WH16NS60_1.02_211810291936_KLHL8JB1707 = "0=99"
