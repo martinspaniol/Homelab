@@ -139,7 +139,7 @@ initContainer:
     # Update or add the app_Key in the settings file
     if grep -q "^app_Key" "$SETTINGS_FILE"; then
       # If the key exists, replace its value
-      sed -i "s/^app_Key = .*/app_Key = \"$LICENSE_KEY\"/" "$SETTINGS_FILE"
+      sed -i "s#^app_Key = .*#app_Key = \"$LICENSE_KEY\"#" "$SETTINGS_FILE"
     else
       # If the key doesn't exist, add it at the end
       echo "app_Key = \"$LICENSE_KEY\"" >> "$SETTINGS_FILE"
