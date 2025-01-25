@@ -1,4 +1,4 @@
-appName: "filebot"
+appName: "makemkv"
 
 # The docker image information for the application
 image:
@@ -263,6 +263,7 @@ extraEnv:
   KEEP_APP_RUNNING: 1
   # MAKEMKV_KEY: UNSET # prevents writing new beta key to settings.conf. see https://github.com/jlesage/docker-makemkv?tab=readme-ov-file#expired-beta-key - key here: https://forum.makemkv.com/forum/viewtopic.php?f=5&t=1053
   MAKEMKV_KEY: UNSET # use purchased license key
+  CONTAINER_DEBUG: 1 # enable debug logging
     
 
 # Optionally specify additional volume mounts for the app and init containers.
