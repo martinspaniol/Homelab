@@ -122,7 +122,7 @@ initContainer:
     echo "Updating license key from secret."
 
     # Path to the mounted license key file
-    LICENSE_FILE="/mnt/makemkv-license-key"
+    LICENSE_FILE="/mnt/makemkv-license-key/MAKEMKV_KEY"
 
     # Path to the settings file
     SETTINGS_FILE="$DEST_DIR/settings.conf"
