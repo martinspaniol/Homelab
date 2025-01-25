@@ -17,7 +17,7 @@ data:
     app_DestinationType = "2"
     app_ExpertMode = "1"
     app_Java = ""
-    # app_Key = "T-lp4bZXFohCJOKraCftH2Z@oExMkXXEcuqsd8wNs3qjNSYf2Y1BQqIkJpxOCbBo@KTV"
+    app_Key = "<LICENSE KEY HERE>"
     app_PreferredLanguage = "ger"
     app_Proxy = ""
     app_ShowAVSyncMessages = "1"
