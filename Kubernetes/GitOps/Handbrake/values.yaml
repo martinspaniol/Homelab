@@ -193,7 +193,6 @@ statefulSet:
 service:
   type: ClusterIP
   port: 80
-  targetPort: 5800
   name: http
 
   # Port to use when type of service is "NodePort" (80 by default)
