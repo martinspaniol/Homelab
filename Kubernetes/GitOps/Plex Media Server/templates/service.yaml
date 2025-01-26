@@ -15,9 +15,9 @@ spec:
   {{- end }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.targetPort }}
+      targetPort: {{ .Values.app.port }}
       {{- if eq .Values.service.type "NodePort" }}
-      nodePort: {{ default "32400" .Values.service.nodePort }}
+      nodePort: {{ default "80" .Values.service.nodePort }}
       {{- end }}
       protocol: TCP
       name: {{ .Values.service.name }}
