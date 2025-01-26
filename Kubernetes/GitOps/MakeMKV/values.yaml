@@ -1,5 +1,3 @@
-appName: "makemkv"
-
 # The docker image information for the application
 image:
   registry: index.docker.io
