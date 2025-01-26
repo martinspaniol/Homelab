@@ -1,30 +1,30 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "pms-chart.fullname" . }}
+  name: {{ include "app-chart.fullname" . }}
   labels:
-    name: {{ include "pms-chart.fullname" . }}
-{{ include "pms-chart.labels" . | indent 4 }}
+    name: {{ include "app-chart.fullname" . }}
+{{ include "app-chart.labels" . | indent 4 }}
   {{- with .Values.statefulSet.annotations }}
   annotations:
 {{ toYaml . | indent 4 }}
   {{- end }}
 spec:
-  serviceName: {{ include "pms-chart.fullname" . }}
+  serviceName: {{ include "app-chart.fullname" . }}
   selector:
     matchLabels:
-      {{- include "pms-chart.selectorLabels" . | nindent 6 }}
+      {{- include "app-chart.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "pms-chart.labels" . | nindent 8 }}
+        {{- include "app-chart.labels" . | nindent 8 }}
       annotations:
         {{- toYaml .Values.statefulSet.podAnnotations | nindent 8 }}
     spec:
       {{- if .Values.runtimeClassName }}
       runtimeClassName: {{ .Values.runtimeClassName | quote }}
       {{- end }}
-      serviceAccountName: {{ include "pms-chart.serviceAccountName" . }}
+      serviceAccountName: {{ include "app-chart.serviceAccountName" . }}
       tolerations:
         {{- toYaml .Values.tolerations | nindent 8 }}
       nodeSelector:
@@ -35,12 +35,12 @@ spec:
       priorityClassName: {{ .Values.priorityClassName | quote }}
       {{- end }}
       volumes:
-      {{- if .Values.pms.configExistingClaim }}
-      - name: pms-config
+      {{- if .Values.app.configExistingClaim }}
+      - name: app-config
         persistentVolumeClaim:
-          claimName: {{ .Values.pms.configExistingClaim | quote }}
+          claimName: {{ .Values.app.configExistingClaim | quote }}
       {{- end }}
-      - name: pms-transcode
+      - name: app-transcode
         emptyDir: {}
       {{- if and .Values.rclone.enabled .Values.rclone.configSecret }}
       {{- range .Values.rclone.remotes }}
@@ -57,7 +57,7 @@ spec:
       - name: init-script-configmap
         configMap:
           defaultMode: 0700
-          name: {{ include "pms-chart.fullname" . }}-init-script
+          name: {{ include "app-chart.fullname" . }}-init-script
       {{- end }}
       {{- if .Values.extraVolumes }}
 {{ toYaml .Values.extraVolumes | indent 6 }}
@@ -69,11 +69,11 @@ spec:
       terminationGracePeriodSeconds: 120
       initContainers:
       {{- if .Values.initContainer.script }}
-      - name: {{ include "pms-chart.fullname" . }}-pms-init
-        image: {{ include "pms-chart.init_image" . }}
+      - name: {{ include "app-chart.fullname" . }}-app-init
+        image: {{ include "app-chart.init_image" . }}
         command: ["/init/init.sh"]
         volumeMounts:
-        - name: pms-config
+        - name: app-config
           mountPath: /config
         - name: init-script-configmap
           mountPath: /init
@@ -82,8 +82,8 @@ spec:
       {{- end }}
       {{- end }}
       {{- if and .Values.rclone.enabled .Values.rclone.configSecret }}
-      - name: {{ include "pms-chart.fullname" . }}-config
-        image: {{ include "pms-chart.init_image" . }}
+      - name: {{ include "app-chart.fullname" . }}-config
+        image: {{ include "app-chart.init_image" . }}
         command:
           - sh
           - -c
@@ -97,12 +97,12 @@ spec:
           mountPath: /out
       {{- end }}
       containers:
-      - name: {{ include "pms-chart.fullname" . }}-pms
-        image: {{ include "pms-chart.image" . }}
+      - name: {{ include "app-chart.fullname" . }}-app
+        image: {{ include "app-chart.image" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
-        - containerPort: 32400
-          name: pms
+        - containerPort: {{ .Values.app.port }}
+          name: app
         env:
         {{- if .Values.ingress.enabled }}
         - name: ADVERTISE_IP
@@ -112,35 +112,38 @@ spec:
         - name: {{ $key }}
           value: {{ $value | quote }}
         {{- end }}
-        {{- if .Values.pms.gpu.nvidia.enabled }}
-        - name: NVIDIA_VISIBLE_DEVICES
-          value: all
-        - name: NVIDIA_DRIVER_CAPABILITIES
-          value: compute,video,utility
-        {{- end }}
-        {{- with .Values.pms.resources }}
+        {{- if or .Values.app.gpu.intel.enabled .Values.app.dvddrive.enabled .Values.app.resources }}
         resources:
           limits:
-          {{- with .limits }}
+            {{- if .Values.app.gpu.intel.enabled }}
+            gpu.intel.com/i915: "1"
+            {{- end }}
+            {{- if .Values.app.dvddrive.enabled }}
+            akri.sh/akri-dvddrive: "1"
+            {{- end }}
+            {{- with .Values.app.resources.limits }}
             {{ toYaml . | indent 12 | trim }}
-          {{- end }}
-          {{- if and $.Values.pms.gpu.nvidia.enabled (not (hasKey .limits "nvidia.com/gpu")) }}
-            nvidia.com/gpu: 1
-          {{- end }}
-          {{- if .requests }}
+            {{- end }}
           requests:
-            {{ toYaml .requests | indent 12 | trim }}
-          {{- end }}
+            {{- if .Values.app.gpu.intel.enabled }}
+            gpu.intel.com/i915: "1"
+            {{- end }}
+            {{- if .Values.app.dvddrive.enabled }}
+            akri.sh/akri-dvddrive: "1"
+            {{- end }}
+            {{- with .Values.app.resources.requests }}
+            {{ toYaml . | indent 12 | trim }}
+            {{- end }}
         {{- end }}
         volumeMounts:
-        - name: pms-config
+        - name: app-config
           mountPath: /config
-        - name: pms-transcode
+        - name: app-transcode
           mountPath: /transcode
       {{- if and .Values.rclone.enabled .Values.rclone.configSecret }}
       {{- range .Values.rclone.remotes }}
-        - name: rclone-media-{{ (split ":" .)._0 }}
-          mountPath: "/data/{{ (split ":" .)._0 }}"
+        - name: rclone-media-{{ .name }}
+          mountPath: "{{ .mountPath }}"
           mountPropagation: HostToContainer
       {{- end }}
       {{- end }}
@@ -149,13 +152,13 @@ spec:
       {{- end }}
     {{- if and .Values.rclone.enabled .Values.rclone.configSecret }}
     {{- range .Values.rclone.remotes }}
-      - name: {{ include "pms-chart.fullname" $ }}-rclone-{{ (split ":" .)._0 }}
-        image: {{ include "pms-chart.rclone_image" $ }}
+      - name: {{ include "app-chart.fullname" $ }}-rclone-{{ .name }}
+        image: {{ include "app-chart.rclone_image" $ }}
         imagePullPolicy: {{ $.Values.rclone.image.pullPolicy }}
         args:
           - mount
-          - "{{ . }}"
-          - "/data/{{ (split ":" .)._0 }}"
+          - "{{ .name }}:{{ .remotePath }}"
+          - "{{ .mountPath }}"
           - --config=/etc/rclone/rclone.conf
           - --allow-non-empty
           - --allow-other
@@ -172,7 +175,7 @@ spec:
         lifecycle:
           preStop:
             exec:
-              command: ["/bin/sh","-c","fusermount3 -uz /data/{{ (split ":" .)._0 }}"]
+              command: ["/bin/sh","-c","fusermount3 -uz {{ .mountPath }}"]
         securityContext:
           privileged: true
           capabilities:
@@ -181,24 +184,24 @@ spec:
         volumeMounts:
         - name: rclone-config
           mountPath: /etc/rclone
-        - name: rclone-media-{{ (split ":" .)._0 }}
-          mountPath: "/data/{{ (split ":" .)._0 }}"
+        - name: rclone-media-{{ .name }}
+          mountPath: "{{ .mountPath }}"
           mountPropagation: Bidirectional
       {{- end }}
       {{- end }}
       {{- with .Values.extraContainers }}
 {{- toYaml . | nindent 6 }}
       {{- end }}
-  {{- if not .Values.pms.configExistingClaim }}
+  {{- if not .Values.app.configExistingClaim }}
   volumeClaimTemplates:
   - metadata:
-      name: pms-config
+      name: app-config
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      {{- if .Values.pms.storageClassName }}
-      storageClassName: {{ .Values.pms.storageClassName }}
+      {{- if .Values.app.storageClassName }}
+      storageClassName: {{ .Values.app.storageClassName }}
       {{- end }}
       resources:
         requests:
-          storage: {{ .Values.pms.configStorage }}
+          storage: {{ .Values.app.configStorage }}
   {{- end }}

@@ -12,19 +12,10 @@ global:
   imageRegistry: ""
 
 ingress:
-  # Specify if an ingress resource for the pms server should be created or not
-  enabled: false
+  # Specify if an ingress resource should be created or not
+  enabled: true
 
-  # The ingress class that should be used
-  ingressClassName: "ingress-nginx"
-
-  # The url to use for the ingress reverse proxy to point at this pms instance
-  url: ""
-
-  # Custom annotations to put on the ingress resource
-  annotations: {}
-
-pms:
+app:
   # The storage class to use when provisioning the pms config volume
   # this needs to be created manually, null will use the default
   storageClassName: longhorn
@@ -36,11 +27,14 @@ pms:
   # NOTE: When set, 'configStorage' and 'storageClassName' are ignored.
   configExistingClaim: ""
 
-  # Enabling this will add nvidia.com/gpu: 1 to limits, and will set
-  # environment for the nvidia operator
+  # Enabling this will add gpu.intel.com/i915: "1" to limits and requests
   gpu:
-    nvidia:
+    intel:
       enabled: false
+
+  # Enabling this will add akri.sh/akri-dvddrive: "1" to limits and requests
+  dvddrive:
+    enabled: false
 
   # resources: {}
   resources:
@@ -51,11 +45,11 @@ pms:
     limits:
   #   cpu: 100m
   #   memory: 128Mi
-      gpu.intel.com/i915: "1"
     requests:
   #   cpu: 100m
   #   memory: 128Mi
-      gpu.intel.com/i915: "1"
+
+  port: 32400
 
 # A basic image that will convert the configmap to a file in the rclone config volume
 # this is ignored if rclone is not enabled
@@ -106,7 +100,7 @@ runtimeClassName: ""
 # the settings specific to rclone
 rclone:
   # if the rclone sidecar should be created
-  enabled: true
+  enabled: false
 
   # the rclone image that should be used
   image:
@@ -175,6 +169,8 @@ statefulSet:
 service:
   type: ClusterIP
   port: 32400
+  targetPort: 32400
+  name: http
 
   # Port to use when type of service is "NodePort" (32400 by default)
   # nodePort: 32400
@@ -220,18 +216,18 @@ extraEnv:
 
 
 # Optionally specify additional volume mounts for the PMS and init containers.
-extraVolumeMounts: []
-# extraVolumeMounts:
-#   - name: pms-backup
-#     mountPath: /mnt/pms-backup
+# extraVolumeMounts: []
+extraVolumeMounts:
+  - name: media
+    mountPath: /data/media
 
 # Optionally specify additional volumes for the pod.
-extraVolumes: []
-# extraVolumes:
-#   - name: pms-backup
-#     hostPath:
-#       path: /mnt/pms-backup
-#       type: Directory
+# extraVolumes: []
+extraVolumes:
+  - name: media
+    hostPath:
+      path: /mnt/media/media
+      type: Directory
 
 extraContainers: []
 # extraContainers:
