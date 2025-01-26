@@ -35,20 +35,12 @@ sudo systemctl restart rke2-agent
 ## Upgrade Longhorn
 
 ```shell
-# kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.7.2/deploy/longhorn.yaml
-```
-
-Instead we're using a modified version of the official longhorn.yaml. The only difference is, that we inserted a nodeSelector (three times):  
-
-```yaml
-nodeSelector:
-  longhorn: "true"
-```
-
-The node selector prevents longhorn from installing on our master nodes.
-
-```shell
-kubectl apply -f https://raw.githubusercontent.com/martinspaniol/Homelab/refs/heads/main/Kubernetes/Upgrade/longhorn.yaml
+helm upgrade --install longhorn longhorn/longhorn \
+  --namespace longhorn-system \
+  --version 1.8.0 \
+  --set-string longhornManager.nodeSelector.longhorn="true" \
+  --set-string longhornUI.nodeSelector.longhorn="true" \
+  --set-string longhornDriver.nodeSelector.longhorn="true"
 ```
 
 ## Upgrade Metallb
