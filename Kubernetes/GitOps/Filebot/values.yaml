@@ -101,7 +101,7 @@ runtimeClassName: ""
 # the settings specific to rclone
 rclone:
   # if the rclone sidecar should be created
-  enabled: true
+  enabled: false
 
   # the rclone image that should be used
   image:
@@ -220,17 +220,18 @@ extraEnv:
 # Optionally specify additional volume mounts for the app and init containers.
 # extraVolumeMounts: []
 extraVolumeMounts:
+  - name: media-output
+    mountPath: /output
   - name: filebot-license-data
     mountPath: /mnt/filebot-license-data
 
 # Optionally specify additional volumes for the pod.
 # extraVolumes: []
-# extraVolumes:
-#   - name: app-backup
-#     hostPath:
-#       path: /mnt/app-backup
-#       type: Directory
 extraVolumes:
+  - name: media-output
+    hostPath:
+      path: /mnt/media
+      type: Directory
   - name: filebot-license-data
     secret:
       secretName: filebot-license
