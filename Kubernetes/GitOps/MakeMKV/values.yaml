@@ -145,6 +145,25 @@ initContainer:
 
     echo "Updating license key completed."
 
+    echo "Downloading latest hashed key file."
+    # Set variables
+    URL="http://fvonline-db.bplaced.net/export/keydb_eng.zip"
+    DEST_DIR="/config/data"
+    ZIP_FILE="$DEST_DIR/keydb_eng.zip"
+
+    # Create destination directory if it does not exist
+    mkdir -p "$DEST_DIR"
+
+    # Download the ZIP file
+    wget -O "$ZIP_FILE" "$URL"
+
+    # Extract contents directly into the destination directory, overwriting existing files
+    unzip -o "$ZIP_FILE" -d "$DEST_DIR"
+
+    # Remove the ZIP file
+    rm "$ZIP_FILE"
+
+    echo "Hashed Key file download complete."
 
 # specify your own runtime class name eg use gpu
 runtimeClassName: ""
