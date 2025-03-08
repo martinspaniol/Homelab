@@ -5,7 +5,7 @@ image:
   # If unset use "latest"
   tag: "latest"
   sha: ""
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 global:
   # Allow parent charts to override registry hostname
