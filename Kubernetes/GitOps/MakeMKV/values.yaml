@@ -269,6 +269,7 @@ commonLabels: {}
 extraEnv:
   USER_ID: 1024
   GROUP_ID: 100
+  UMASK: 0002
   TZ: "Europe/Berlin"
   CLEAN_TMP_DIR: 1
   AUTO_DISC_RIPPER: 1
