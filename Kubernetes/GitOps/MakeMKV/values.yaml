@@ -145,25 +145,25 @@ initContainer:
 
     echo "Updating license key completed."
 
-    echo "Downloading latest hashed key file."
-    # Set variables
-    URL="http://fvonline-db.bplaced.net/export/keydb_eng.zip"
-    DEST_DIR="/config/data"
-    ZIP_FILE="$DEST_DIR/keydb_eng.zip"
+    # echo "Downloading latest hashed key file."
+    # # Set variables
+    # URL="http://fvonline-db.bplaced.net/export/keydb_eng.zip"
+    # DEST_DIR="/config/data"
+    # ZIP_FILE="$DEST_DIR/keydb_eng.zip"
 
-    # Create destination directory if it does not exist
-    mkdir -p "$DEST_DIR"
+    # # Create destination directory if it does not exist
+    # mkdir -p "$DEST_DIR"
 
-    # Download the ZIP file
-    wget -O "$ZIP_FILE" "$URL"
+    # # Download the ZIP file
+    # wget -O "$ZIP_FILE" "$URL"
 
-    # Extract contents directly into the destination directory, overwriting existing files
-    unzip -o "$ZIP_FILE" -d "$DEST_DIR"
+    # # Extract contents directly into the destination directory, overwriting existing files
+    # unzip -o "$ZIP_FILE" -d "$DEST_DIR"
 
-    # Remove the ZIP file
-    rm "$ZIP_FILE"
+    # # Remove the ZIP file
+    # rm "$ZIP_FILE"
 
-    echo "Hashed Key file download complete."
+    # echo "Hashed Key file download complete."
 
 # specify your own runtime class name eg use gpu
 runtimeClassName: ""
@@ -274,7 +274,7 @@ extraEnv:
   CLEAN_TMP_DIR: 1
   AUTO_DISC_RIPPER: 1
   AUTO_DISC_RIPPER_EJECT: 1
-  AUTO_DISC_RIPPER_BD_MODE: mkv #mkv, backup
+  AUTO_DISC_RIPPER_BD_MODE: backup #mkv, backup
   # AUTO_DISC_RIPPER_MIN_TITLE_LENGTH: 900 # 15min for TV shows
   AUTO_DISC_RIPPER_MIN_TITLE_LENGTH: 3600 # 1h for movies
   AUTO_DISC_RIPPER_FORCE_UNIQUE_OUTPUT_DIR: 1
