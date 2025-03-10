@@ -145,6 +145,10 @@ initContainer:
 
     echo "Updating license key completed."
 
+    ###########################################
+    # Uncomment the following lines to update #
+    # the key file for decrypting discs       #
+    ###########################################
     # echo "Downloading latest hashed key file."
     # # Set variables
     # URL="http://fvonline-db.bplaced.net/export/keydb_eng.zip"
@@ -273,6 +277,7 @@ extraEnv:
   TZ: "Europe/Berlin"
   CLEAN_TMP_DIR: 1
   AUTO_DISC_RIPPER: 1
+  AUTO_DISC_RIPPER_MAKEMKV_PROFILE: Custom.mmcp.xml
   AUTO_DISC_RIPPER_EJECT: 1
   AUTO_DISC_RIPPER_BD_MODE: backup #mkv, backup
   # AUTO_DISC_RIPPER_MIN_TITLE_LENGTH: 900 # 15min for TV shows
