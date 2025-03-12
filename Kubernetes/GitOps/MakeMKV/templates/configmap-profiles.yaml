@@ -25,28 +25,24 @@ data:
             value in preferences. Keep this element in your custom profiles only for compatibility with older MakeMKV versions.
         -->
         <profileSettings
-            app_DefaultSelectionString="-sel:all,+sel:(favlang|eng|nolang|single),-sel:(havemulti|havecore),-sel:mvcvideo,=100:all,-10:favlang"
+            app_DefaultSelectionString="-sel:all,+sel:(favlang|eng|nolang|single),-sel:(havemulti),-sel:(multi&(~core)),-sel:mvcvideo,=100:all,-10:favlang"
         />
 
         <!-- Output formats currently supported by MakeMKV -->
         <outputSettings name="copy" outputFormat="directCopy">
             <description lang="eng">Copy track as is</description>
-            <description lang="ger">Track 1:1 kopieren</description>
         </outputSettings>
 
         <outputSettings name="lpcm" outputFormat="LPCM-raw">
             <description lang="eng">Save as raw LPCM</description>
-            <description lang="ger">Als RAW LPCM speichern</description>
         </outputSettings>
 
         <outputSettings name="wavex" outputFormat="LPCM-wavex">
             <description lang="eng">Save as LPCM in WAV container</description>
-            <description lang="ger">Als LPCM im WAV-Container speichern</description>
         </outputSettings>
 
         <outputSettings name="flac-best" outputFormat="FLAC">
             <description lang="eng">Save as FLAC (best compression)</description>
-            <description lang="ger">Als FLAC speichern (höchste Komprimierungsstufe)</description>
             <extraArgs>-compression_level 12</extraArgs>
         </outputSettings>
 
@@ -79,9 +75,6 @@ data:
         <!-- Custom Rule: Copy DTS-HD in container and convert to flac-->
         <!-- Uncomment for 4K UHD Blu-rays -->
         <trackSettings input="DTSHDMA-multi">
-            <output outputSettingsName="copy"
-                    defaultSelection="$app_DefaultSelectionString">
-            </output>
             <output outputSettingsName="flac-best"
                     defaultSelection="$app_DefaultSelectionString,-10:true">   
             </output>
@@ -91,9 +84,6 @@ data:
         <!-- Custom Rule: Copy TRUE-HD in container and convert to flac-->
         <!-- Uncomment for 4K UHD Blu-rays -->
         <trackSettings input="TRUEHD-multi">
-            <output outputSettingsName="copy"
-                    defaultSelection="$app_DefaultSelectionString">
-            </output>
             <output outputSettingsName="flac-best"
                     defaultSelection="$app_DefaultSelectionString,-10:true">
             </output>
@@ -113,184 +103,5 @@ data:
             </output>
         </trackSettings>
         -->
-    </profile>
 
-  Perfect.mmcp.xml: |
-    <profile> 
-        <!-- profile name - Perfect -->
-        <name lang="eng">PERFECT</name>
-        
-        <!-- Common MKV flags -->
-        <mkvSettings 
-            ignoreForcedSubtitlesFlag="false"
-            useISO639Type2T="false"
-        />
-        
-        <!-- Settings overridable in preferences -->
-        <profileSettings
-            app_DefaultSelectionString="-sel:all,-sel:(core|special|lossy),+sel:(favlang|eng|nolang|single),+sel:mvcvideo,+sel:attachment,=100:all,-10:favlang"
-        />
-        
-        <!-- Output formats currently supported by MakeMKV -->
-        <outputSettings name="copy" outputFormat="directCopy">
-            <description lang="eng">Copy track 1:1</description>
-        </outputSettings>
-        <outputSettings name="FLAC" outputFormat="FLAC">
-            <description lang="eng">Compress Audio with FLAC</description>
-            <extraArgs>-threads 2 -compression_level 12 -lpc_coeff_precision 15 -lpc_passes 8 -lpc_type 3</extraArgs>
-        </outputSettings>
-        <outputSettings name="zlib" outputFormat="directCopy">
-            <description lang="eng">Compress subtitles with ZLIB</description>
-            <extraArgs>compression="zlib" compressionLevel="9"</extraArgs>
-        </outputSettings>
-        
-        <!-- Default rule - copy as is -->
-        <trackSettings input="default">
-            <output outputSettingsName="copy" 
-                    defaultSelection="$app_DefaultSelectionString,+sel:true"></output>
-        </trackSettings>
-        <trackSettings input="Mpeg1">
-            <output outputSettingsName="copy" 
-                    defaultSelection="$app_DefaultSelectionString,+sel:true"></output>
-        </trackSettings>
-        <trackSettings input="Mpeg2">
-            <output outputSettingsName="copy" 
-                    defaultSelection="$app_DefaultSelectionString,+sel:true"></output>
-        </trackSettings>
-        <trackSettings input="Mpeg4">
-            <output outputSettingsName="copy" 
-                    defaultSelection="$app_DefaultSelectionString,+sel:true"></output>
-        </trackSettings>
-        <trackSettings input="VC1">
-            <output outputSettingsName="copy" 
-                    defaultSelection="$app_DefaultSelectionString,+sel:true"></output>
-        </trackSettings>
-        
-        <!-- Lossless Audio -->
-        <trackSettings input="TRUEHD-stereo">
-            <output outputSettingsName="FLAC"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="TRUEHD-multi">
-            <output outputSettingsName="FLAC"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="MLP-stereo">
-            <output outputSettingsName="FLAC"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="MLP-multi">
-            <output outputSettingsName="FLAC"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="DTSHDMA-stereo">
-            <output outputSettingsName="copy"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="DTSHDMA-multi">
-            <output outputSettingsName="copy"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="FLAC-stereo">
-            <output outputSettingsName="FLAC"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="FLAC-multi">
-            <output outputSettingsName="FLAC"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="LPCM-stereo">
-            <output outputSettingsName="FLAC"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="LPCM-multi">
-            <output outputSettingsName="FLAC"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        
-        <!-- Lossy Audio --> 
-        <trackSettings input="MP2">
-        <output outputSettingsName="copy"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="MP3">
-            <output outputSettingsName="copy"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="DTS-stereo">
-            <output outputSettingsName="copy"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="DTS-multi">
-            <output outputSettingsName="copy"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="DTSHD-core-multi">
-            <output outputSettingsName="copy" 
-                    defaultSelection="$app_DefaultSelectionString">
-            </output>
-        </trackSettings>
-        <trackSettings input="DTSHD-core-stereo">
-            <output outputSettingsName="copy" 
-                    defaultSelection="$app_DefaultSelectionString">
-            </output>
-        </trackSettings>
-        <trackSettings input="DTSHD-stereo">
-            <output outputSettingsName="copy"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="DTSHD-multi">
-            <output outputSettingsName="copy"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="DTSHDLBR-stereo">
-            <output outputSettingsName="copy"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="DTSHDLBR-multi">
-            <output outputSettingsName="copy"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="AC3-stereo">
-            <output outputSettingsName="copy"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="AC3-multi">
-            <output outputSettingsName="copy"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="EAC3-stereo">
-            <output outputSettingsName="copy"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="EAC3-multi">
-            <output outputSettingsName="copy"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        
-        <!-- Compress subtitles with ZLIB -->
-        <trackSettings input="PGS">
-            <output outputSettingsName="zlib"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="PGS-forced">
-            <output outputSettingsName="zlib"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="VOBSUB">
-            <output outputSettingsName="zlib"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="VOBSUB-forced">
-            <output outputSettingsName="zlib"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="VOBSUBHD">
-            <output outputSettingsName="zlib"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
-        <trackSettings input="VOBSUBHD-forced">
-            <output outputSettingsName="zlib"
-                defaultSelection="$app_DefaultSelectionString"></output>
-        </trackSettings>
     </profile>
