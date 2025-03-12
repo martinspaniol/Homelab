@@ -25,7 +25,7 @@ data:
             value in preferences. Keep this element in your custom profiles only for compatibility with older MakeMKV versions.
         -->
         <profileSettings
-            app_DefaultSelectionString="-sel:all,+sel:(favlang|eng|nolang|single),-sel:(havemulti),-sel:(multi&(~core)),-sel:mvcvideo,=100:all,-10:favlang"
+            app_DefaultSelectionString="-sel:all,+sel:(favlang|eng|nolang|single),-sel:(havemulti),-sel:(multi*(~core)),-sel:mvcvideo,=100:all,-10:favlang"
         />
 
         <!-- Output formats currently supported by MakeMKV -->
