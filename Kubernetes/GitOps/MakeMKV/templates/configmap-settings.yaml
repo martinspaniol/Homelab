@@ -13,7 +13,7 @@ data:
     app_DataDir = "/config/data"
     app_DefaultProfileName = "Custom"
     # app_DefaultSelectionString = "-sel:all,+sel:(favlang|eng|nolang|single),-sel:(havemulti|havecore),-sel:mvcvideo,=100:all,-10:favlang"
-    app_DefaultSelectionString = "-sel:all,+sel:(favlang|eng|nolang|single),-sel:(havemulti),-sel:(multi*(~core)),-sel:mvcvideo,=100:all,-10:favlang"
+    app_DefaultSelectionString = "-sel:all,+sel:(favlang|eng|nolang|single),-sel:(havemulti),-sel:mvcvideo,=100:all,-10:favlang"
     app_DestinationDir = "/output"
     app_DestinationType = "2"
     app_ExpertMode = "1"

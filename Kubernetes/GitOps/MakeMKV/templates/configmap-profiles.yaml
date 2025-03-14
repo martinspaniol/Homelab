@@ -25,7 +25,7 @@ data:
             value in preferences. Keep this element in your custom profiles only for compatibility with older MakeMKV versions.
         -->
         <profileSettings
-            app_DefaultSelectionString="-sel:all,+sel:(favlang|eng|nolang|single),-sel:(havemulti),-sel:(multi*(~core)),-sel:mvcvideo,=100:all,-10:favlang"
+            app_DefaultSelectionString="-sel:all,+sel:(favlang|eng|nolang|single),-sel:(havemulti),-sel:mvcvideo,=100:all,-10:favlang"
         />
 
         <!-- Output formats currently supported by MakeMKV -->
@@ -76,7 +76,7 @@ data:
         <!-- Uncomment for 4K UHD Blu-rays -->
         <trackSettings input="DTSHDMA-multi">
             <output outputSettingsName="flac-best"
-                    defaultSelection="$app_DefaultSelectionString,-10:true">   
+                    defaultSelection="$app_DefaultSelectionString,-10:true,+sel:true">   
             </output>
         </trackSettings>
         
@@ -85,7 +85,7 @@ data:
         <!-- Uncomment for 4K UHD Blu-rays -->
         <trackSettings input="TRUEHD-multi">
             <output outputSettingsName="flac-best"
-                    defaultSelection="$app_DefaultSelectionString,-10:true">
+                    defaultSelection="$app_DefaultSelectionString,-10:true,+sel:true">
             </output>
         </trackSettings>
 
