@@ -1,0 +1,9 @@
+global:
+  namespace: "plextraktsync"
+
+  fallbackDefaults:
+      pvcSize: 1Gi
+
+podOptions:
+  nodeSelector:
+    worker: "true"
