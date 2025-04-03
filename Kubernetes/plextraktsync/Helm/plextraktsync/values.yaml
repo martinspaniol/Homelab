@@ -7,3 +7,5 @@ global:
 podOptions:
   nodeSelector:
     worker: "true"
+
+TZ: "Europe/Berlin"
