@@ -38,7 +38,7 @@ helm install \
     cert-manager jetstack/cert-manager \
     --namespace cert-manager \
     --create-namespace \
-    --version v1.16.2 \
+    --version v1.17.1 \
     --set crds.enabled=true
 ```
 

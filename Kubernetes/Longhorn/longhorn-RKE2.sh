@@ -25,8 +25,8 @@ echo -e " \033[32;2m                                                           \
 # THIS SCRIPT IS FOR RKE2, NOT K3S!
 
 # Version of longhorn and Kubebuilder Controller Tools to deploy
-longhornversion="v1.7.2"
-kubebuildercontrollertoolsversion="v0.15.0"
+longhornversion="v1.8.1"
+kubebuildercontrollertoolsversion="v0.17.3"
 
 # Set the IP addresses of master1
 master1=192.168.0.101
@@ -92,12 +92,20 @@ EOF
 done
 
 # Step 2: Install Longhorn (using modified Official to pin to Longhorn Nodes)
-curl -sO https://raw.githubusercontent.com/martinspaniol/Homelab/main/Kubernetes/Longhorn/longhorn
-cat longhorn | sed 's/$longhornversion/'$longhornversion'/g; s/$kubebuildercontrollertoolsversion/'$kubebuildercontrollertoolsversion'/g' > $HOME/longhorn.yaml
-kubectl apply -f $HOME/longhorn.yaml
-kubectl get pods \
---namespace longhorn-system \
---watch
+# curl -sO https://raw.githubusercontent.com/martinspaniol/Homelab/main/Kubernetes/Longhorn/longhorn
+# cat longhorn | sed 's/$longhornversion/'$longhornversion'/g; s/$kubebuildercontrollertoolsversion/'$kubebuildercontrollertoolsversion'/g' > $HOME/longhorn.yaml
+# kubectl apply -f $HOME/longhorn.yaml
+# kubectl get pods \
+# --namespace longhorn-system \
+# --watch
+helm repo add longhorn https://charts.longhorn.io
+helm repo update
+helm install longhorn longhorn/longhorn \
+  --namespace longhorn-system \
+  --create-namespace \
+  --version 1.8.1 \
+  --set-string global.nodeSelector.longhorn="true" \
+  --set defaultSettings.systemManagedComponentsNodeSelector="worker:true"
 
 # Step 3: Print out confirmation
 kubectl get nodes
