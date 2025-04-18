@@ -1,6 +1,6 @@
 globalArguments:
   - "--global.sendanonymoususage=false"
-  - "--global.checknewversion=false"
+  - "--global.checknewversion=true"
 
 additionalArguments:
   - "--serversTransport.insecureSkipVerify=true"
@@ -19,16 +19,36 @@ nodeSelector:
 
 ports:
   web:
-    redirectTo:
-      port: websecure
-      priority: 10
-  websecure:
-    tls:
-      enabled: true
+    redirections:
+      entryPoint:
+        to: websecure
+        scheme: https
+        permanent: true
 
+# Create an IngressRoute for the dashboard
 ingressRoute:
   dashboard:
     enabled: false
+
+# Create the custom middlewares used by the IngressRoute dashboard (can also be created in another way).
+# /!\ Yes, you need to replace "changeme" password with a better one. /!\
+extraObjects:
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: traefik-dashboard-auth-secret
+    type: kubernetes.io/basic-auth
+    stringData:
+      username: admin
+      password: changeme
+
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: traefik-dashboard-auth
+    spec:
+      basicAuth:
+        secret: traefik-dashboard-auth-secret
 
 providers:
   kubernetesCRD:

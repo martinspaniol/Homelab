@@ -7,8 +7,6 @@ This shell script first creates the necessary VMs for Rancher Kubernetes Version
 - Proxmox is set up and running
 - You have a working cloud-init template (see [Cloud-Init](../Cloud-Init/Readme.md))
 
-## Instructions
-
 ## Create and configure the Proxmox nodes
 
 1. Create the nodes in proxmox. At least 3 master and 2 worker nodes are needed. For administration an additional admin-VM will be used. Make sure to use static ip adresses.
@@ -93,10 +91,57 @@ scp -i ~/.ssh/$certName \
 echo -e " \033[32;5mConfigured ${rke2names[0]} VM successfully\033[0m"
 ```
 
-### Adjust the RKE2 Script
+## Adjust the RKE2 Script
 
 Adjust the IP adresses of the nodes in the `rke2.sh` shell script on your admin node.
 
-### Deploy RKE2
+## Deploy RKE2
 
 ssh into your RKE2 Admin VM and run the script `rke2.sh`.
+
+## Add additional mount points (optional)
+
+In case you want to use additional storage on your worker nodes (e.g. nfs or cifs mounted storage) do the following steps on all of your worker nodes.
+
+### Step 1: Install additional packages
+
+Hint: In order to specify the `iocharset` when mounting a cifs share in `/etc/fstab` you need to install the `linux-modules-extra` for your specific kernel version.
+
+```shell
+sudo apt install -y nfs-common #only needed for nfs mounted storage
+sudo apt install -y linux-modules-extra-$(uname -r) #only needed for cifs mounted storage to support iocharset option
+sudo apt install -y cifs-utils #only needed for cifs mounted storage
+```
+
+## Step 2: Create credential file for smb/cifs mounted storage
+
+In case you want to mount storage using cifs use the following lines to create a credential file:
+
+```shell
+credentialFile="/etc/smbcredentials"
+echo -e "username=<USERNAME>\npassword=<PASSWORD>" | sudo tee $credentialFile > /dev/null
+sudo chmod 600 $credentialFile
+```
+
+Then add this line to the `additional` variable in Step 3:
+
+```shell
+additional="\tcredentials=$credentialFile"
+```
+
+### Step 3: Mount shared folder
+
+In my case I want to mount the media directory which is needed for many of my kubernetes containers. On all worker nodes execute the following script:
+
+```shell
+serverName="diskstation.fritz.box:"
+shareName="volume1/media"
+mountPoint="/mnt/media"
+protocol="nfs"
+sudo mkdir -p $mountPoint # create the mount point for the share
+additional="\tdefaults\t0 0"
+echo -e "$serverName/$shareName\t$mountPoint\t$protocol$additional" | sudo tee -a /etc/fstab > /dev/null # Add the new mount to fstab
+
+sudo mount -a # mount the share
+sudo systemctl daemon-reload
+```
