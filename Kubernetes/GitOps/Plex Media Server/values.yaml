@@ -25,7 +25,7 @@ app:
 
   # Name of an existing `PersistentVolumeClaim` for the PMS database
   # NOTE: When set, 'configStorage' and 'storageClassName' are ignored.
-  configExistingClaim: "pms-config-plex-plex-media-server-0"
+  configExistingClaim: "plex"
 
   # Enabling this will add gpu.intel.com/i915: "1" to limits and requests
   gpu:

@@ -12,9 +12,9 @@ I assume you fullfill these prerequesites:
 
 ## Instructions
 
-### rclone config
+### rclone config (outdated, media folder is directly mounted on worker nodes)
 
-1. Install the latest version of rclone
+<strike>1. Install the latest version of rclone
 `sudo -v ; curl https://rclone.org/install.sh | sudo bash`
 
 2. Create a new rclone configuration  
@@ -84,6 +84,7 @@ rclone configurations will be stored in `~/.config/rclone/rclone.conf`.
       remotes:
           - "diskstation-media:/media" # /media is the name of the smb share, diskstation-media is the config name within rlcone.conf
     ```
+</strike>
 
 ### Migrate an existing plex installation (optional)
 
