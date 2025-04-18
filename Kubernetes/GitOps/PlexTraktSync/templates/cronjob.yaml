@@ -1,0 +1,70 @@
+{{- if .Values.job.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "plextraktsync.fullname" . }}
+  labels:
+    {{- include "plextraktsync.labels" . | nindent 4 }}
+spec:
+  schedule: "{{ .Values.job.schedule }}"
+  concurrencyPolicy: {{ .Values.job.concurrencyPolicy }}
+  successfulJobsHistoryLimit: {{ .Values.job.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.job.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: {{ include "plextraktsync.name" . }}
+            app.kubernetes.io/instance: {{ .Release.Name }}
+        spec:
+          nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 12 }}
+          containers:
+            - name: {{ include "plextraktsync.name" . }}
+              image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              env:
+                - name: PLEX_URL
+                  value: {{ quote .Values.plex.url }}
+                - name: PLEX_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.credentials.existingSecret }}
+                      key: plexToken
+                - name: TRAKT_CLIENT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.credentials.existingSecret }}
+                      key: traktClientId
+                - name: TRAKT_CLIENT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.credentials.existingSecret }}
+                      key: traktClientSecret
+                - name: TRAKT_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.credentials.existingSecret }}
+                      key: traktUsername
+                - name: TRAKT_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.credentials.existingSecret }}
+                      key: traktPassword
+                - name: SYNC_INTERVAL
+                  value: "{{ .Values.syncInterval }}"
+              volumeMounts:
+                - name: config
+                  mountPath: /app/config
+          restartPolicy: OnFailure
+          volumes:
+            - name: config
+              {{- if .Values.persistence.enabled }}
+              persistentVolumeClaim:
+                claimName: {{ include "plextraktsync.fullname" . }}-config-pvc
+              {{- else }}
+              configMap:
+                name: {{ include "plextraktsync.fullname" . }}-config
+              {{- end }}
+{{- end }}

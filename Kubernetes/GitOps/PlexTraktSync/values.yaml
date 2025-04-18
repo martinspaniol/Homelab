@@ -1,0 +1,65 @@
+replicaCount: 1
+
+image:
+  registry: ghcr.io     # container registry (e.g., ghcr.io, docker.io)
+  repository: taxel/plextraktsync
+  tag: "0.34.7"        # updated to the latest tag
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  annotations: {}
+  hosts:
+    - host: plextraktsync.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources: {}
+#  limits:
+#    cpu: 100m
+#    memory: 128Mi
+#  requests:
+#    cpu: 100m
+#    memory: 128Mi
+
+affinity: {}
+# podAntiAffinity, nodeAffinity, etc.
+
+tolerations: []
+
+# Scheduling constraints
+nodeSelector:
+  worker: "true"  # default to worker nodes
+
+# Configuration persistence
+persistence:
+  enabled: true        # set to true to use a PVC for /app/config
+  storageClass: longhorn  # defaults to Longhorn
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+
+# External credentials
+credentials:
+  existingSecret: ""  # name of Kubernetes Secret containing: plexToken, traktClientId, traktClientSecret, traktUsername, traktPassword
+
+# Service URLs
+plex:
+  url: http://plex:32400
+
+# Sync interval in seconds (default: 3600)
+syncInterval: 3600
+
+# Job/CronJob settings
+job:
+  enabled: false                     # set to true to use CronJob instead of Deployment
+  schedule: "0 * * * *"             # cron schedule (every hour)
+  concurrencyPolicy: "Forbid"       # CronJob concurrencyPolicy
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
