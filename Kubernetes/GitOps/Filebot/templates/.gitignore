@@ -1,1 +1,2 @@
-filebot-license.yaml
+# Ignore license file
+*-secret.yaml
