@@ -52,6 +52,13 @@ plex:
 # Sync interval in seconds (default: 3600)
 syncInterval: 3600
 
+# Container startup override to disable interactive mode
+# Use command+args to run only the sync command non-interactively
+command:
+  - "plextraktsync"
+args:
+  - "sync"
+
 # Job/CronJob settings
 job:
   enabled: false                     # set to true to use CronJob instead of Deployment

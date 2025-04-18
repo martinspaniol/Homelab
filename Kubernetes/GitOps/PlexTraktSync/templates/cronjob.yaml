@@ -24,6 +24,12 @@ spec:
             - name: {{ include "plextraktsync.name" . }}
               image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
               imagePullPolicy: {{ .Values.image.pullPolicy }}
+              {{- if .Values.command }}
+              command: {{ toYaml .Values.command | indent 14 }}
+              {{- end }}
+              {{- if .Values.args }}
+              args: {{ toYaml .Values.args | indent 14 }}
+              {{- end }}
               env:
                 - name: PLEX_URL
                   value: {{ quote .Values.plex.url }}

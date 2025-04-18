@@ -23,6 +23,12 @@ spec:
         - name: {{ include "plextraktsync.name" . }}
           image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.command }}
+          command: {{ toYaml .Values.command | indent 12 }}
+          {{- end }}
+          {{- if .Values.args }}
+          args: {{ toYaml .Values.args | indent 12 }}
+          {{- end }}
           ports:
             - containerPort: {{ .Values.service.port }}
           env:
