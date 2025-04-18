@@ -45,10 +45,6 @@ persistence:
     - ReadWriteOnce
   size: 1Gi
 
-# External credentials
-credentials:
-  existingSecret: ""  # name of Kubernetes Secret containing: plexToken, traktClientId, traktClientSecret, traktUsername, traktPassword
-
 # Service URLs
 plex:
   url: http://plex:32400
@@ -63,3 +59,13 @@ job:
   concurrencyPolicy: "Forbid"       # CronJob concurrencyPolicy
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 1
+
+extraVolumeMounts:
+  - name: plextraktsync-secret
+    mountPath: /app/config
+    readOnly: true
+
+extraVolumes:
+  - name: plextraktsync-secret
+    secret:
+      secretName: plextraktsync-secret
