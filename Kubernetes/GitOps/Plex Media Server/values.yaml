@@ -147,7 +147,7 @@ rclone:
 
 imagePullSecrets: []
 nameOverride: ""
-fullnameOverride: ""
+fullnameOverride: "plex"
 
 serviceAccount:
   # Specifies whether a service account should be created
