@@ -11,7 +11,7 @@
 ```shell
 helm upgrade rancher rancher-latest/rancher \
  --namespace cattle-system \
- --set hostname=rancher.my.org
+ --set hostname=rancher.unserneuesheim.de
 ```
 
 ## Upgrade RKE2 (Each node, not Admin!)
