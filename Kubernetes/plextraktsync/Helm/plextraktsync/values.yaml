@@ -4,8 +4,16 @@ global:
   fallbackDefaults:
       pvcSize: 1Gi
 
+resources:
+  limits:
+    cpu: 0
+    memory: 0
+
 podOptions:
   nodeSelector:
     worker: "true"
 
 TZ: "Europe/Berlin"
+
+plextraktsync:
+  schedule: "0 * * * *" # run every hour

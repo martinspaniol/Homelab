@@ -8,12 +8,7 @@ This guide gives you a step by step instruction on how to install plextraktsync.
 
 ## Preparation
 
-Add the necessary helm repository:
-
-```shell
-helm repo add jetstack https://charts.jetstack.io
-helm repo update
-```
+No preparartion needed so far.
 
 ## Installation
 
@@ -21,6 +16,8 @@ Installation is done via the OCI chart. For configuration adjust the values file
 
 ```shell
 helm install plextraktsync oci://tccr.io/truecharts/plextraktsync \
+    --create-namespace \
+    --namespace plextraktsync \
     -f ~/Helm/plextraktsync/values.yaml 
 ```
 
