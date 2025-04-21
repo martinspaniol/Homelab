@@ -1,13 +1,18 @@
 # Introduction
+
 This shell script first creates the necessary VMs for Longhorn and then installs an Longhorn on these nodes in Proxmox.
 
-# Requirements
+## Requirements
+
 - Proxmox is set up and running
 - You have a working cloud-init template (see [Cloud-Init](../Cloud-Init/Readme.md))
 
-# Instructions
-## Create and configure the Proxmox nodes
+## Instructions
+
+### Create and configure the Proxmox nodes
+
 1. Create the nodes in proxmox. At least 3 master and 2 worker nodes are needed. For administration an additional admin-VM will be used. Make sure to use static ip adresses.
+
 ```shell
 longhornnames=(\
     longhorn-01 \
@@ -36,7 +41,7 @@ proxmoxhv=ms01
 certName=id_rsa
 
 # Change this to the VM ID of your template
-templateID=5000
+templateID=5001
 
 # User of remote machines
 user=ubuntu
@@ -67,7 +72,9 @@ done
 EOF
 echo -e " \033[32;5mlonghorn VMs created\033[0m"
 ```
+
 2. Copy the `longhorn-RKE2.sh`, `id_rsa` and `id_rsa.pub` file into your home directory of your admin node. Make sure the script is executable (`chmod +x`).
+
 ```shell
 scp -i ~/.ssh/$certName \
     ~/.ssh/$certName \
@@ -77,11 +84,14 @@ scp -i ~/.ssh/$certName \
 echo -e " \033[32;5mConfigured ${longhornnames[0]} VM successfully\033[0m"
 ```
 
-## Mount additional storage (optional but recommended)
+### Mount additional storage (optional but recommended)
+
 If you want to add additional storage to your longhorn nodes, i.e. from a NAS device, follow these steps:
+
 1. Create the necessary storage on your NAS device, for example by creating a NFS share.
 2. Add an additional harddrive to each of your longhorn VMs in Proxmox. Make sure that this harddrive is located on your NAS.
 3. ssh into each of your longhorn VMs and execute the following commands:
+
 ```shell
 ssh -tt <YOUR LONGHORN VM> -i ~/.ssh/$certName <<'EOF'
 sudo fdisk -l # this should give you /dev/sdb as the additional storage device
@@ -106,14 +116,18 @@ EOF
 echo -e " \033[32;5mAdditional Storage to your longhorn VM added\033[0m" 
 ```
 
-## Adjust the longhorn Script
+### Adjust the longhorn Script
+
 Adjust the IP adresses of the nodes in the `longhorn-RKE2.sh` shell script on your admin node.
 
-## Deploy longhorn
+### Deploy longhorn
+
 ssh into your longhorn Admin VM and run the script `longhorn-RKE2.sh`.
 
-## Open Longhorn and make some adjustments
+### Open Longhorn and make some adjustments
+
 After Longhorn is deployed you can open it by using your Rancher GUI > Your Cluster > Longhorn. Make the following adjustments:
+
 1. Under _Nodes_ make sure that only your longhorn nodes are selected to be scheduled. Disable all other nodes from scheduling.
 2. Edit each of your longhorn nodes to add the additional storage. Click the hamburger menu on the right of each node > edit node and disks
     1. Click _Add Disk_ in the upper right. Enter the path and enable scheduling.

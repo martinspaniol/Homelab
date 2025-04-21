@@ -50,7 +50,7 @@ proxmoxhv=ms01
 certName=id_rsa
 
 # Change this to the VM ID of your template
-templateID=5000
+templateID=5001
 
 # User of remote machines
 user=ubuntu
@@ -77,6 +77,7 @@ for i in $(seq 0 $((${#rke2names[@]} - 1))); do
     if [ "${rke2resize[$i]}" != "no" ]; then
         qm disk resize $(($i + $startingVMID)) scsi0 ${rke2resize[$i]}
     fi
+    qm start $(($i + $startingVMID))
 done
 EOF
 echo -e " \033[32;5mRKE2 VMs created\033[0m"
@@ -88,7 +89,7 @@ echo -e " \033[32;5mRKE2 VMs created\033[0m"
 scp -i ~/.ssh/$certName \
     ~/.ssh/$certName \
     ~/.ssh/$certName.pub \
-    ./Homelab/RKE2/rke2.sh \
+    ./Homelab/Kubernetes/RKE2/rke2.sh \
     $user@${rke2names[0]}:~/
 echo -e " \033[32;5mConfigured ${rke2names[0]} VM successfully\033[0m"
 ```
