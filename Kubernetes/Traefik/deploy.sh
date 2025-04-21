@@ -91,7 +91,7 @@ namespaceStatus=$(kubectl get ns cert-manager -o json | jq .status.phase -r)
 if [ $namespaceStatus == "Active" ]
 then
     echo -e " \033[32;5mCert-Manager already installed, upgrading with new values.yaml...\033[0m"
-    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.crds.yaml
+    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.1/cert-manager.crds.yaml
     helm upgrade \
     cert-manager \
     jetstack/cert-manager \
@@ -99,13 +99,13 @@ then
     --values ~/Helm/Traefik/Cert-Manager/values.yaml
 else
     echo "Cert-Manager is not present, installing..."
-    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.crds.yaml
+    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.1/cert-manager.crds.yaml
     helm repo add jetstack https://charts.jetstack.io
     helm repo update
     helm install cert-manager jetstack/cert-manager \
     --namespace cert-manager \
     --create-namespace \
-    --version v1.16.2
+    --version v1.17.1
 fi
 
 # Step 11: Add webhook for INWX and apply secret for certificate

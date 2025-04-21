@@ -923,11 +923,9 @@ For me, I will change some values, so my installation looks like this:
 helm install akri akri-helm-charts/akri \
   --set useLatestContainers=true \
   --set-string agent.nodeSelectors.worker="true" `# we need to use --set-string here to make "true" (a boolean value) work as a string` \
-  --set-string webhookConfiguration.nodeSelectors.worker="true" \
+  --set-string webhookConfiguration.nodeSelectors.worker="true" `# does not work currently, see [Issue 732](https://github.com/project-akri/akri/issues/732)` \
   --set udev.discovery.enabled=true `# enable the udev discovery handler` \
-  --set-string udev.discovery.nodeSelectors.worker="true" `# does not work currently, see [Issue 732](https://github.com/project-akri/akri/issues/732)`
-
-
+  --set-string udev.discovery.nodeSelectors.worker="true" 
 ```
 
 After the installation akri will report this message:

@@ -11,7 +11,7 @@
 ```shell
 helm upgrade rancher rancher-latest/rancher \
  --namespace cattle-system \
- --set hostname=rancher.my.org
+ --set hostname=rancher.unserneuesheim.de
 ```
 
 ## Upgrade RKE2 (Each node, not Admin!)
@@ -37,7 +37,7 @@ sudo systemctl restart rke2-agent
 ```shell
 helm upgrade --install longhorn longhorn/longhorn \
   --namespace longhorn-system \
-  --version 1.8.0 \
+  --version 1.8.1 \
   --set-string longhornManager.nodeSelector.longhorn="true" \
   --set-string longhornUI.nodeSelector.longhorn="true" \
   --set-string longhornDriver.nodeSelector.longhorn="true"
