@@ -25,6 +25,6 @@ spec:
           port: {{ .Values.service.port }}
       middlewares:
         - name: default-headers
-  tls: {}
+  # tls:
   #   secretName: unserneuesheim-tls # change to your cert
 {{- end }}
