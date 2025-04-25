@@ -117,9 +117,12 @@ kubectl apply -f ~/Helm/Traefik/Cert-Manager/Issuers/inwx-credentials.yaml
 # Step 12: Apply production certificate issuer (technically you should use the staging to test as per documentation)
 kubectl apply -f ~/Helm/Traefik/Cert-Manager/Issuers/letsencrypt-production.yaml
 
-# Step 13: Apply production certificate
+# Step 13: Apply production certificate and secrets
 kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/unserneuesheim.yaml
+kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/unserneuesheim-secret.yaml
 kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/martinspaniol.yaml
+kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/martinspaniol-secret.yaml
 kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/ds.martinspaniol.yaml
+kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/ds.martinspaniol-secret.yaml
 
 echo -e " \033[32;5mScript finished.\033[0m"
