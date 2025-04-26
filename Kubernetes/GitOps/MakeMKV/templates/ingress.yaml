@@ -17,14 +17,14 @@ spec:
         - name: {{ include "app-chart.fullname" . }}
           port: {{ .Values.service.port }}
       middlewares:
-        - name: default-headers
+        - name: traefik-default-headers@kubernetescrd
     - match: Host(`www.{{ include "app-chart.fullname" . }}.unserneuesheim.de`)
       kind: Rule
       services:
         - name: {{ include "app-chart.fullname" . }}
           port: {{ .Values.service.port }}
       middlewares:
-        - name: default-headers
+        - name: traefik-default-headers@kubernetescrd
   # tls:
   #   secretName: unserneuesheim-tls # change to your cert
 {{- end }}

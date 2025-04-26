@@ -14,12 +14,14 @@ spec:
       services:
         - name: {{ .Values.appName }}
           port: 80
+      middlewares:
+        - name: traefik-default-headers@kubernetescrd
     - match: Host(`{{ .Values.appName }}.{{ .Values.domain }}.de`) # change to your domain
       kind: Rule
       services:
         - name: {{ .Values.appName }}
           port: 80
       middlewares:
-        - name: default-headers
+        - name: traefik-default-headers@kubernetescrd
   # tls:
   #   secretName: {{ .Values.domain }}-tls # change to your cert
