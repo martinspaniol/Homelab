@@ -1,0 +1,39 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: ecodms
+  namespace: traefik
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`dms.unserneuesheim.de`)
+      kind: Rule
+      services:
+        - name: ecodms
+          port: 8080
+      middlewares:
+        - name: traefik-default-headers@kubernetescrd
+    - match: Host(`www.dms.unserneuesheim.de`)
+      kind: Rule
+      services:
+        - name: ecodms
+          port: 8080
+      middlewares:
+        - name: traefik-default-headers@kubernetescrd
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecodms
+  namespace: traefik
+spec:
+  type: ExternalName
+  externalName: ecodms-2402.fritz.box  # Target backend IP
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      name: http
