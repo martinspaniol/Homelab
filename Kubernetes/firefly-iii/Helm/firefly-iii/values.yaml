@@ -1,0 +1,67 @@
+firefly-db:
+
+  storage:
+    class: ~
+    accessModes: ReadWriteOnce  # Change as needed for your storageClass https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes
+    dataSize: 1Gi
+
+  # environment variables
+  configs:
+    # -- Set this to the name of a secret to load environment variables from. If defined, values in the secret will override values in configs
+    existingSecret: firefly-db
+
+
+firefly-iii:
+  # -- Environment variables for Firefly III. See docs at: https://github.com/firefly-iii/firefly-iii/blob/main/.env.example
+  config:
+    # -- Set this to the name of a secret to load environment variables from. If defined, values in the secret will override values in config.env
+    existingSecret: firefly-iii
+
+  ingress:
+    enabled: true
+    className: traefik
+    annotations:
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.middlewares: traefik-default-headers@kubernetescrd
+      traefik.ingress.kubernetes.io/router.tls: "true"
+    hosts:
+      - firefly.unserneuesheim.de
+
+  nodeSelector:
+    worker: "true"
+
+
+importer:
+  # -- Set to false to not deploy the importer
+  enabled: true
+
+  fireflyiii:
+    # -- The URL at which Firefly III is available. If you change this value, click the "Reauthenticate" button on the importer after opening it!
+    url: "http://firefly.unserneuesheim.de"
+    # -- The URL at which you access Firefly III. Check https://docs.firefly-iii.org/data-importer/install/configure/#configure-fidi to find out if you should set this.
+    # vanityUrl: ""
+    auth:
+      # -- If you specify an existingSecret, it has to have the accessToken in a .spec.data.accessToken
+      existingSecret: "firefly-importer-accesstoken"
+
+  # -- Environment variables for the importer. See docs at: https://github.com/firefly-iii/data-importer/blob/main/.env.example
+  config:
+    # -- Set this to the name of a secret to load environment variables from. If defined, values in the secret will override values in config.env
+    existingSecret: firefly-importer
+    env:
+      TZ: Europe/Berlin
+
+  ingress:
+    enabled: true
+    className: traefik
+    annotations:
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.middlewares: traefik-default-headers@kubernetescrd
+      traefik.ingress.kubernetes.io/router.tls: "true"
+    hosts:
+      - firefly-importer.unserneuesheim.de
+
+  nodeSelector:
+    worker: "true"
