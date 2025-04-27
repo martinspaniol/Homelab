@@ -1,22 +1,42 @@
-globalArguments:
-  - "--global.sendanonymoususage=false"
-  - "--global.checknewversion=true"
-
-additionalArguments:
-  - "--serversTransport.insecureSkipVerify=true"
-  - "--log.level=INFO"
-  - "--providers.kubernetescrd.allowCrossNamespace=true"
-
 deployment:
-  enabled: true
-  replicas: 2 # match with number of workers
-  annotations: {}
-  podAnnotations: {}
-  additionalContainers: []
-  initContainers: []
+  replicas: 2
 
-nodeSelector:
-  worker: "true" # add these labels to your worker nodes before running - see video
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+  name: ""
+
+ingressRoute:
+  dashboard:
+    enabled: true
+    matchRule: Host(`traefik.unserneuesheim.de`)
+    entryPoints: ["websecure"]
+    middlewares:
+      - name: traefik-default-headers@kubernetescrd
+      - name: traefik-dashboard-auth
+    tls:
+      secretName: unserneuesheim-tls
+
+providers:
+  kubernetesCRD:
+    enabled: true
+    allowCrossNamespace: true
+    allowExternalNameServices: true
+    ingressClass: "traefik-external"
+
+  kubernetesIngress:
+    enabled: true
+    allowExternalNameServices: true
+    publishedService:
+      enabled: false
+
+logs:
+  access:
+    enabled: true
+
+globalArguments:
+- "--global.checknewversion=true"
+- "--global.sendanonymoususage=false"
 
 ports:
   web:
@@ -26,13 +46,14 @@ ports:
         scheme: https
         permanent: true
 
-# Create an IngressRoute for the dashboard
-ingressRoute:
-  dashboard:
-    enabled: false
+service:
+  spec:
+    externalTrafficPolicy: Local
+    loadBalancerIP: "192.168.0.180"
 
-# Create the custom middlewares used by the IngressRoute dashboard (can also be created in another way).
-# /!\ Yes, you need to replace "changeme" password with a better one. /!\
+nodeSelector:
+  worker: "true"
+
 extraObjects:
   - apiVersion: v1
     kind: Secret
@@ -42,7 +63,6 @@ extraObjects:
     stringData:
       username: admin
       password: changeme
-
   - apiVersion: traefik.io/v1alpha1
     kind: Middleware
     metadata:
@@ -50,28 +70,18 @@ extraObjects:
     spec:
       basicAuth:
         secret: traefik-dashboard-auth-secret
-
-providers:
-  kubernetesCRD:
-    enabled: true
-    ingressClass: traefik-external
-    allowExternalNameServices: true
-  kubernetesIngress:
-    enabled: true
-    allowExternalNameServices: true
-    publishedService:
-      enabled: false
-
-rbac:
-  enabled: true
-
-service:
-  enabled: true
-  type: LoadBalancer
-  annotations: {}
-  labels: {}
-  spec:
-    loadBalancerIP: 192.168.0.180 # this should be an IP in the Kube-VIP range
-    externalTrafficPolicy: Local # Preserve the client IP
-  loadBalancerSourceRanges: []
-  externalIPs: []
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: default-headers
+    spec:
+      headers:
+        browserXssFilter: true
+        contentTypeNosniff: true
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 15552000
+        customFrameOptionsValue: SAMEORIGIN
+        customRequestHeaders:
+          X-Forwarded-Proto: https
