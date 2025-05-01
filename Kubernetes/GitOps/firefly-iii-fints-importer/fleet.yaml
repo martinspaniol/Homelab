@@ -15,7 +15,7 @@ helm:
   chart: ""
 
   # An https to a valid Helm repository to download the chart from
-  repo: "https://"
+  repo: "https://github.com/martinspaniol/Homelab/tree/main/Kubernetes/GitOps/firefly-iii-fints-importer"
 
   # Used if repo is set to look up the version of the chart
   version: ""
