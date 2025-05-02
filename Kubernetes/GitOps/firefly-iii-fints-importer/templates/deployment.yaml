@@ -42,7 +42,6 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              # containerPort: {{ .Values.service.port }}
               containerPort: 8080
               protocol: TCP
           {{- with .Values.livenessProbe }}
@@ -57,35 +56,27 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if or (.Values.persistence.enabled) (.Values.extraVolumeMounts) }}
+          {{- if or (.Values.extraVolumeMounts) (.Values.config.existingSecret) }}
           volumeMounts:
             {{- with .Values.extraVolumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
-            {{- if .Values.persistence.enabled }}
-            - name: configurations
+            {{- if .Values.config.existingSecret }}
+            - name: app-config
               mountPath: "/app/configurations"
-            {{- end }}
+            {{- end}}
           {{- end }}
-          # {{- with .Values.volumeMounts }}
-          # volumeMounts:
-          #   {{- toYaml . | nindent 12 }}
-          # {{- end }}
-      {{- if or (.Values.persistence.enabled) (.Values.extraVolumes) }}
+      {{- if or (.Values.extraVolumes) (.Values.config.existingSecret) }}
       volumes:
         {{- with .Values.extraVolumes }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-        {{- if (.Values.persistence.enabled) }}
-        - name: configurations
-          persistentVolumeClaim:
-            claimName: {{ default (include "firefly-iii-fints-importer.fullname" .)  .Values.persistence.existingClaim }}
+        {{- if .Values.config.existingSecret }}
+        - name: app-config
+          secret:
+            secretName: {{ .Values.config.existingSecret }}
         {{- end }}
       {{- end }}
-      # {{- with .Values.volumes }}
-      # volumes:
-      #   {{- toYaml . | nindent 8 }}
-      # {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

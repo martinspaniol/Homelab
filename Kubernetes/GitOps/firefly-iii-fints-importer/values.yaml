@@ -17,16 +17,11 @@ image:
 imagePullSecrets: []
 # This is to override the chart name.
 nameOverride: ""
-fullnameOverride: "firefly-iii-fints-importer"
+fullnameOverride: firefly-iii-fints-importer
 
-persistence:
-  # -- If you set this to false, uploaded attachments are not stored persistently and will be lost with every restart of the pod
-  enabled: true
-  storageClassName: ""
-  accessModes: ReadWriteOnce
-  storage: 1Gi
-  # -- If you want to use an existing claim, set it here
-  existingClaim: pvc-firefly-iii-fints-importer
+config:
+  # -- Set this to the name of a secret to load environment variables from. If defined, values in the secret will override values in config.env
+  existingSecret: firefly-iii-fints-importer
 
 # This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:
