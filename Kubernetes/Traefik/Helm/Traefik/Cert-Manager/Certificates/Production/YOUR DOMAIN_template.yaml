@@ -8,7 +8,7 @@ metadata:
 spec:
   secretName: <YOUR DOMAIN>-tls # change to your secretname
   issuerRef:
-    name: letsencrypt-production
+    name: letsencrypt-ionos-production
     kind: ClusterIssuer
   commonName: "*.<YOUR DOMAIN>.de" # change to your domain
   dnsNames:
