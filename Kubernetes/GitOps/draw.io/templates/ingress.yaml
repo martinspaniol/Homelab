@@ -18,6 +18,7 @@ spec:
           port: {{ .Values.service.port }}
       middlewares:
         - name: traefik-default-headers@kubernetescrd
+        - name: traefik-authelia-basic@kubernetescrd
     - match: Host(`www.{{ include "app-chart.fullname" . }}.unserneuesheim.de`)
       kind: Rule
       services:
