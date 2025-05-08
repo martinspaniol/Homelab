@@ -34,7 +34,7 @@ firefly-iii:
     annotations:
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      traefik.ingress.kubernetes.io/router.middlewares: traefik-default-headers@kubernetescrd
+      traefik.ingress.kubernetes.io/router.middlewares: traefik-default-headers@kubernetescrd,traefik-authelia@kubernetescrd
       traefik.ingress.kubernetes.io/router.tls: "true"
     hosts:
       - firefly.unserneuesheim.de
