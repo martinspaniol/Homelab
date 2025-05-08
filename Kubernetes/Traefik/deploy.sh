@@ -74,16 +74,16 @@ kubectl get svc -n traefik
 kubectl get pods -n traefik
 
 # Step 6: Apply Middleware
-kubectl apply -f ~/Helm/Traefik/default-headers.yaml
+# kubectl apply -f ~/Helm/Traefik/default-headers.yaml
 
 # Step 7: Create Secret for Traefik Dashboard
-kubectl apply -f ~/Helm/Traefik/Dashboard/secret-dashboard.yaml
+# kubectl apply -f ~/Helm/Traefik/Dashboard/secret-dashboard.yaml
 
 # Step 8: Apply Middleware
-kubectl apply -f ~/Helm/Traefik/Dashboard/middleware.yaml
+# kubectl apply -f ~/Helm/Traefik/Dashboard/middleware.yaml
 
 # Step 9: Apply Ingress to Access Service
-kubectl apply -f ~/Helm/Traefik/Dashboard/ingress.yaml
+# kubectl apply -f ~/Helm/Traefik/Dashboard/ingress.yaml
 
 # Step 10: Install Cert-Manager (should already have this with Rancher deployment)
 # Check if we already have it by querying namespace
@@ -108,21 +108,21 @@ else
     --version v1.17.1
 fi
 
-# Step 11: Add webhook for INWX and apply secret for certificate
-helm repo add smueller18 https://smueller18.gitlab.io/helm-charts
-helm repo update
-helm install --namespace cert-manager cert-manager-webhook-inwx smueller18/cert-manager-webhook-inwx
-kubectl apply -f ~/Helm/Traefik/Cert-Manager/Issuers/inwx-credentials.yaml
+# # Step 11: Add webhook for INWX and apply secret for certificate
+# helm repo add smueller18 https://smueller18.gitlab.io/helm-charts
+# helm repo update
+# helm install --namespace cert-manager cert-manager-webhook-inwx smueller18/cert-manager-webhook-inwx
+# kubectl apply -f ~/Helm/Traefik/Cert-Manager/Issuers/inwx-credentials.yaml
 
-# Step 12: Apply production certificate issuer (technically you should use the staging to test as per documentation)
-kubectl apply -f ~/Helm/Traefik/Cert-Manager/Issuers/letsencrypt-production.yaml
+# # Step 12: Apply production certificate issuer (technically you should use the staging to test as per documentation)
+# kubectl apply -f ~/Helm/Traefik/Cert-Manager/Issuers/letsencrypt-production.yaml
 
-# Step 13: Apply production certificate and secrets
-kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/unserneuesheim.yaml
-kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/unserneuesheim-secret.yaml
-kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/martinspaniol.yaml
-kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/martinspaniol-secret.yaml
-kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/ds.martinspaniol.yaml
-kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/ds.martinspaniol-secret.yaml
+# # Step 13: Apply production certificate and secrets
+# kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/unserneuesheim.yaml
+# kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/unserneuesheim-secret.yaml
+# kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/martinspaniol.yaml
+# kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/martinspaniol-secret.yaml
+# kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/ds.martinspaniol.yaml
+# kubectl apply -f ~/Helm/Traefik/Cert-Manager/Certificates/Production/ds.martinspaniol-secret.yaml
 
 echo -e " \033[32;5mScript finished.\033[0m"
