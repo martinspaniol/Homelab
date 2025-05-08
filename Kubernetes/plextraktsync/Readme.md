@@ -25,4 +25,7 @@ helm install plextraktsync oci://tccr.io/truecharts/plextraktsync \
 
 The possible configuration options can be found in the official [values file][values].
 
+After the the deployment follow the setup from the official [plextraktsync repo][plextrakstync-repo].
+
 [values]: https://github.com/truecharts/public/blob/master/charts/stable/plextraktsync/values.yaml
+[plextrakstync-repo]: https://github.com/Taxel/PlexTraktSync?tab=readme-ov-file#setup
