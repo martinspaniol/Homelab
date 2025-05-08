@@ -1,0 +1,32 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: authelia
+  namespace: traefik
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`authelia.unserneuesheim.de`)
+      kind: Rule
+      services:
+        - name: authelia
+          port: 9091
+      middlewares:
+        - name: traefik-default-headers@kubernetescrd
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: authelia
+  namespace: traefik
+spec:
+  type: ExternalName
+  externalName: authelia.fritz.box  # Target backend IP
+  ports:
+    - protocol: TCP
+      port: 9091
+      targetPort: 9091
+      name: http
