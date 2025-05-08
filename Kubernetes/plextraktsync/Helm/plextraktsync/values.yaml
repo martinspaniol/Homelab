@@ -87,25 +87,6 @@ persistence:
         init-config:
           subPath: config.yml
           mountPath: /tmp/config.yml
-  # plextraktsync-secret-vol:
-  #   enabled: true
-  #   type: secret
-  #   objectName: plextraktsync-secret
-  #   items:
-  #     - key: .env
-  #       path: .env
-  #     - key: servers.yml
-  #       path: servers.yml
-  #     - key: .pytrakt.json
-  #       path: .pytrakt.json
-  #   targetSelector:
-  #     main:
-  #       init-config:
-  #         mountPath: /tmp
-
-# secret:
-#   plextraktsync-secret:
-#     enabled: true
 
 configmap:
   plextraktsync-configmap:
