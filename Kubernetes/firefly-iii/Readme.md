@@ -39,5 +39,7 @@ helm install firefly-iii firefly-iii/firefly-iii-stack \
     --namespace firefly-iii
 ```
 
+[bundesbank-PAN]: https://www.bundesbank.de/dynamic/action/de/startseite/suche/bankleitzahlen-suche/747634/bankleitzahlen
+[FinTS Suche]: https://subsembly.com/banken.html
 [official guide]: https://firefly-iii.github.io/kubernetes/
 [charts directory]: https://github.com/firefly-iii/kubernetes/tree/main/charts
