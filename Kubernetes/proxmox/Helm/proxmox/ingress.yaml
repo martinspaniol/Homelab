@@ -1,0 +1,32 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: proxmox
+  namespace: traefik
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`proxmox.unserneuesheim.de`)
+      kind: Rule
+      services:
+        - name: proxmox
+          port: 8006
+      middlewares:
+        - name: traefik-default-headers@kubernetescrd
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: proxmox
+  namespace: traefik
+spec:
+  type: ExternalName
+  externalName: 192.168.0.12  # Target backend IP
+  ports:
+    - protocol: TCP
+      port: 8006
+      targetPort: 8006
+      name: http
