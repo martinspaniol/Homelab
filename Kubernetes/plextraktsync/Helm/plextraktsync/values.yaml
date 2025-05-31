@@ -2,7 +2,9 @@ global:
   namespace: "plextraktsync"
 
   fallbackDefaults:
-      pvcSize: 1Gi
+    pvcSize: 1Gi
+    accessModes:
+      - ReadWriteMany
 
 resources:
   limits:
