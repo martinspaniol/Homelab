@@ -5,6 +5,7 @@ global:
     pvcSize: 1Gi
     accessModes:
       - ReadWriteMany
+    pvcRetain: true
 
 resources:
   limits:
